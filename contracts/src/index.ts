@@ -1,3 +1,3 @@
-import { Add } from './Add.js';
+import { VerifySignature } from './Verify.js';
 
-export { Add };
+export { VerifySignature };
