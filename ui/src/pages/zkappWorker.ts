@@ -38,16 +38,16 @@ const functions = {
     state.zkapp = new state.VerifySignature!(publicKey);
   },
   createVerifySignatureTransaction: async (args: { 
-    publicKey58: string, 
-    signature: string, 
-    messageField: string 
+    publicKey: string, 
+    signature:  string, 
+    messageField: number 
   }) => {
-    const publicKey = PublicKey.fromBase58(args.publicKey58);
-    const signature = Signature.fromJSON(args.signature);
-    const messageField = Field.fromJSON(args.messageField);
-
     const transaction = await Mina.transaction(async () => {
-      await state.zkapp!.verifySignature(publicKey, signature, messageField);
+        await state.zkapp!.verifySignature(
+          PublicKey.fromBase58(args.publicKey), 
+          Signature.fromBase58(args.signature), 
+          Field(args.messageField)
+        );      
     });
     state.transaction = transaction;
   },

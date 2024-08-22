@@ -39,14 +39,14 @@ export default class ZkappWorkerClient {
   }
 
   createVerifySignatureTransaction(
-    publicKey: PublicKey,
-    signature: Signature,
-    messageField: Field
+    publicKey: string,
+    signature: string,
+    messageField: number
   ) {
     return this._call('createVerifySignatureTransaction', {
-      publicKey58: publicKey.toBase58(),
-      signature: signature.toJSON(),
-      messageField: messageField.toJSON(),
+      publicKey: publicKey,
+      signature: signature,
+      messageField: messageField,
     });
   }
 

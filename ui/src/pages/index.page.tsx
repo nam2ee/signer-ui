@@ -8,7 +8,7 @@ import ZkappWorkerClient from './zkappWorkerClient';
 import YUMITokenABI from './abi.json'; // Assume you've created this ABI file
 
 let transactionFee = 0.1;
-const ZKAPP_ADDRESS = 'B62qmX1vKm7v8hsD6CW4aBLy7TydxTjFie58mPFVj3seQYCXnjDzZgd';
+const ZKAPP_ADDRESS = 'B62qjiQ3CsBGHZw9YQPvLdJ93Awzf9giKTELhYT4BU68kqGJvhWgauK';
 const YUMI_TOKEN_ADDRESS = '0x19DC7fB41Cc753E2156e10Eb3E94d96b36251EEb'; // Replace with your deployed ERC20 contract address
 
 export default function Home() {
@@ -188,22 +188,28 @@ export default function Home() {
       publicKey: state.publicKey!,
     });
 
+    let result = await window.mina?.signFields({ message: [1234] }).catch((err: any) => err);
+
+      console.log( result);
+
+      if (!result || !result.publicKey || !result.signature || !result.data || result.data.length === 0) {
+        throw new Error('Invalid result from signFields');
+      }
+      
+
+      const publickey = result.publicKey; 
+      const signature = result.signature;
+      const messageField = result.data[0];
+
     try {
       // TODO: Implement code for tossing arguments
       // You should generate a public key, signature, and message field here
       // const publicKey = ...
       // const signature = ...
       // const messageField = ...
-
-      let result = await window.mina?.signFields({ message: [1234] }).catch((err: any) => err);
-
-      const publicKey = PublicKey.fromBase58(result.publicKey); 
-      const signature = Signature.fromBase58(result.signature);
-      const messageField = Field.fromJSON(result.data[0]);
-
-
+      
       await state.zkappWorkerClient!.createVerifySignatureTransaction(
-        publicKey,
+        publickey,
         signature,
         messageField
       );
