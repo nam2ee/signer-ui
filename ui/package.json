@@ -11,12 +11,14 @@
     "deploy": "next build --no-lint && touch out/.nojekyll && node ./ghp-postbuild && git add -f out && git commit -m \"Deploy gh-pages\" && cd .. && git subtree push --prefix ui/out origin gh-pages"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.0.2",
     "coi-serviceworker": "^0.1.7",
     "ethers": "^6.13.2",
     "next": "14.2.3",
     "o1js": "^1.*",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "solc": "^0.8.26"
   },
   "devDependencies": {
     "@types/node": "^20",

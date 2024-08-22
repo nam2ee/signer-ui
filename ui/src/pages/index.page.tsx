@@ -80,21 +80,28 @@ export default function Home() {
   };
   
 
-  const mintTokens = async () => {
-    if (typeof window.ethereum !== 'undefined' && isVerified) {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(YUMI_TOKEN_ADDRESS, YUMITokenABI, signer);
-  
-      try {
-        const tx = await contract.mint(ethAddress, ethers.parseEther(tokenAmount));
-        await tx.wait();
-        console.log('Tokens minted successfully');
-      } catch (error) {
-        console.error('Error minting tokens', error);
+    const mintTokens = async () => {
+      if (typeof window.ethereum !== 'undefined' && isVerified) {
+
+        console.log("metamask detected")
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        console.log(provider)
+        const signer = await provider.getSigner();
+        console.log(signer)
+
+        
+        const contract = new ethers.Contract(YUMI_TOKEN_ADDRESS, YUMITokenABI, signer);
+    
+        try {
+          const tx = await contract.mint(ethAddress, ethers.parseEther(tokenAmount));
+          await tx.wait();
+          console.log('Tokens minted successfully');
+        } catch (error) {
+          console.error('Error minting tokens', error);
+        }
       }
-    }
-  };
+    };
 
   // -------------------------------------------------------
   // Mina Setup
