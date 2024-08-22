@@ -1,15 +1,496 @@
 import { Field, PublicKey, Signature } from 'o1js';
 import { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import { ethers , Log} from 'ethers';
 import GradientBG from '../components/GradientBG.js';
 import styles from '../styles/Home.module.css';
 import './reactCOIServiceWorker';
 import ZkappWorkerClient from './zkappWorkerClient';
-import YUMITokenABI from './abi.json'; // Assume you've created this ABI file
 
 let transactionFee = 0.1;
 const ZKAPP_ADDRESS = 'B62qjiQ3CsBGHZw9YQPvLdJ93Awzf9giKTELhYT4BU68kqGJvhWgauK';
-const YUMI_TOKEN_ADDRESS = '0x19DC7fB41Cc753E2156e10Eb3E94d96b36251EEb'; // Replace with your deployed ERC20 contract address
+const TOKEN_FACTORY_ADDRESS = '0x4896e6d340027E2471Bf854d8B10770024Af0e04'; // Replace with your deployed ERC20 contract address
+const TokenFactoryABI = [
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "tokenAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "symbol",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "TokenCreated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "symbol",
+        "type": "string"
+      }
+    ],
+    "name": "createToken",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
+
+const CustomTokenABI = [
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "symbol",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "initialOwner",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "allowance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "needed",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC20InsufficientAllowance",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "balance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "needed",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC20InsufficientBalance",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "approver",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidApprover",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidReceiver",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidSender",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidSpender",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "Approval",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "Transfer",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      }
+    ],
+    "name": "allowance",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "approve",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "decimals",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "mint",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "name",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalSupply",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "transfer",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "transferFrom",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
+
 
 export default function Home() {
   const [state, setState] = useState({
@@ -26,7 +507,10 @@ export default function Home() {
   const [transactionlink, setTransactionLink] = useState('');
   const [ethAddress, setEthAddress] = useState('');
   const [isVerified, setIsVerified] = useState(false);
-  const [tokenAmount, setTokenAmount] = useState('');
+  const [tokenName, setTokenName] = useState('');
+  const [Custom_Token_Address, setCustom_TOKEN_ADDRESS] = useState('');
+  const [initialSupply, setInitialSupply] = useState('');
+  const [tokenSymbol, setTokenSymbol] = useState('');
 
   const connectWallet = async () => {
     if (typeof window.ethereum !== 'undefined') {
@@ -80,29 +564,69 @@ export default function Home() {
   };
   
 
-    const mintTokens = async () => {
-      if (typeof window.ethereum !== 'undefined' && isVerified) {
-
-        console.log("metamask detected")
-
+  const createNewToken = async (tokenName: string, tokenSymbol: string, initialSupply: string) => {
+    if (typeof window.ethereum !== 'undefined' && isVerified) {
+      try {
+        console.log("Creating new token...");
         const provider = new ethers.BrowserProvider(window.ethereum);
-        console.log(provider)
         const signer = await provider.getSigner();
-        console.log(signer)
-
-        
-        const contract = new ethers.Contract(YUMI_TOKEN_ADDRESS, YUMITokenABI, signer);
-    
-        try {
-          const tx = await contract.mint(ethAddress, ethers.parseEther(tokenAmount));
-          await tx.wait();
-          console.log('Tokens minted successfully');
-        } catch (error) {
-          console.error('Error minting tokens', error);
+  
+        const factory = new ethers.Contract(TOKEN_FACTORY_ADDRESS, TokenFactoryABI, signer);
+        console.log("Factory contract initialized");
+  
+        // Convert initialSupply to wei (assuming 18 decimals)
+        const initialSupplyWei = ethers.parseEther(initialSupply);
+  
+        // Create a new token
+        const tx = await factory.createToken(tokenName, tokenSymbol);
+        console.log("Token creation transaction sent:", tx.hash);
+        const receipt = await tx.wait();
+        console.log("Token creation transaction confirmed:", receipt.transactionHash);
+  
+        // Get the new token address from the event logs
+        const event = receipt.logs.find((log: Log) => 
+          log.topics[0] === ethers.id("TokenCreated(address,string,string,address)")
+        );
+  
+        if (!event) {
+          throw new Error("TokenCreated event not found in transaction logs");
         }
+  
+        const [newTokenAddress, , , owner] = ethers.AbiCoder.defaultAbiCoder().decode(
+          ['address', 'string', 'string', 'address'], 
+          event.data
+        );
+  
+        console.log('New token created at:', newTokenAddress);
+        console.log('Token owner:', owner);
+  
+        // Now, let's mint the initial supply
+        const newToken = new ethers.Contract(newTokenAddress, CustomTokenABI, signer);
+        console.log("Minting initial supply...");
+        const mintTx = await newToken.mint(await signer.getAddress(), initialSupplyWei);
+        console.log("Mint transaction sent:", mintTx.hash);
+        const mintReceipt = await mintTx.wait();
+        console.log("Mint transaction confirmed:", mintReceipt.transactionHash);
+  
+        setCustom_TOKEN_ADDRESS(newTokenAddress);
+        
+        setDisplayText(`New token "${tokenName}" (${tokenSymbol}) created successfully at ${newTokenAddress}. Initial supply of ${initialSupply} tokens minted to your address.`);
+      } catch (error) {
+        console.error('Error creating or minting token', error);
+        setDisplayText('Error creating or minting token. Check console for details.');
       }
-    };
-
+    } else {
+      setDisplayText('Please connect your wallet and verify your signature first.');
+    }
+  };
+  
+  // Add this useEffect to load the Solidity compiler
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://solc-bin.ethereum.org/bin/soljson-v0.8.20+commit.a1b79de6.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
   // -------------------------------------------------------
   // Mina Setup
 
@@ -323,8 +847,11 @@ export default function Home() {
 
 
   let mainContent;
+
+
   if (state.hasBeenSetup && state.accountExists) {
     mainContent = (
+
       <div style={{ justifyContent: 'center', alignItems: 'center' }}>
         <div className={styles.center} style={{ padding: 0 }}>
           Verify Signature
@@ -336,22 +863,38 @@ export default function Home() {
         >
           Verify Signature
         </button>
+
+
+
+        
         <button className={styles.card} onClick={connectWallet}>
           Connect Ethereum Wallet
         </button>
         {ethAddress && <p>Connected Ethereum Address: {ethAddress}</p>}
         {isVerified && (
-          <div>
-            <input
-              type="number"
-              value={tokenAmount}
-              onChange={(e) => setTokenAmount(e.target.value)}
-              placeholder="Enter token amount"
-            />
-            <button className={styles.card} onClick={mintTokens}>
-              Mint Tokens
-            </button>
-          </div>
+            <div>
+              <input 
+                type="text" 
+                placeholder="Token Name" 
+                value={tokenName}
+                onChange={(e) => setTokenName(e.target.value)}
+              />
+              <input 
+                type="text" 
+                placeholder="Token Symbol" 
+                value={tokenSymbol}
+                onChange={(e) => setTokenSymbol(e.target.value)}
+              />
+              <input 
+                type="text" 
+                placeholder="Initial Supply" 
+                value={initialSupply}
+                onChange={(e) => setInitialSupply(e.target.value)}
+              />
+              <button onClick={() => createNewToken(tokenName, tokenSymbol, initialSupply)}>
+                Create Token
+              </button>
+            </div>
         )}
       </div>
     );
