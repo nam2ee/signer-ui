@@ -17,8 +17,7 @@
     "next": "14.2.3",
     "o1js": "^1.*",
     "react": "^18",
-    "react-dom": "^18",
-    "solc": "^0.8.26"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
