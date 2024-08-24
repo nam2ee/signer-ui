@@ -8,489 +8,6 @@ import ZkappWorkerClient from './zkappWorkerClient';
 
 let transactionFee = 0.1;
 const ZKAPP_ADDRESS = 'B62qjiQ3CsBGHZw9YQPvLdJ93Awzf9giKTELhYT4BU68kqGJvhWgauK';
-const TOKEN_FACTORY_ADDRESS = '0x4896e6d340027E2471Bf854d8B10770024Af0e04'; // Replace with your deployed ERC20 contract address
-const TokenFactoryABI = [
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "tokenAddress",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "symbol",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "TokenCreated",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "symbol",
-        "type": "string"
-      }
-    ],
-    "name": "createToken",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-]
-
-const CustomTokenABI = [
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "symbol",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "initialOwner",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "allowance",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "needed",
-        "type": "uint256"
-      }
-    ],
-    "name": "ERC20InsufficientAllowance",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "balance",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "needed",
-        "type": "uint256"
-      }
-    ],
-    "name": "ERC20InsufficientBalance",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "approver",
-        "type": "address"
-      }
-    ],
-    "name": "ERC20InvalidApprover",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "receiver",
-        "type": "address"
-      }
-    ],
-    "name": "ERC20InvalidReceiver",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      }
-    ],
-    "name": "ERC20InvalidSender",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      }
-    ],
-    "name": "ERC20InvalidSpender",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnableInvalidOwner",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "OwnableUnauthorizedAccount",
-    "type": "error"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
-    "name": "Approval",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnershipTransferred",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
-    "name": "Transfer",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      }
-    ],
-    "name": "allowance",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
-    "name": "approve",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "balanceOf",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "decimals",
-    "outputs": [
-      {
-        "internalType": "uint8",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "mint",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "name",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "symbol",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalSupply",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
-    "name": "transfer",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
-    "name": "transferFrom",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-]
-
 
 export default function Home() {
   const [state, setState] = useState({
@@ -511,25 +28,87 @@ export default function Home() {
   const [Custom_Token_Address, setCustom_TOKEN_ADDRESS] = useState('');
   const [initialSupply, setInitialSupply] = useState('');
   const [tokenSymbol, setTokenSymbol] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [tokenAddress, setTokenAddress] = useState('');
+  const [mintedAmount, setMintedAmount] = useState('');
+
+  const [setupStage, setSetupStage] = useState({
+    workerLoaded: false,
+    walletChecked: false,
+    accountChecked: false,
+    zkAppInitialized: false
+  });
+
+  // New state for popup
+  const [showPopup, setShowPopup] = useState(false);
+
+  const loadWorker = async () => {
+    setDisplayText('Loading web worker...');
+    const zkappWorkerClient = new ZkappWorkerClient();
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    setDisplayText('Done loading web worker');
+    setState({ ...state, zkappWorkerClient });
+    setSetupStage({ ...setupStage, workerLoaded: true });
+  };
+
+  const checkWallet = async () => {
+    const mina = (window as any).mina;
+    if (mina == null) {
+      setState({ ...state, hasWallet: false });
+      setDisplayText('No wallet found. Please install Auro wallet.');
+    } else {
+      const publicKeyBase58: string = (await mina.requestAccounts())[0];
+      const publicKey = PublicKey.fromBase58(publicKeyBase58);
+      setDisplayText(`Using key:${publicKey.toBase58()}`);
+      setState({ ...state, hasWallet: true, publicKey });
+    }
+    setSetupStage({ ...setupStage, walletChecked: true });
+  };
+
+  const checkAccount = async () => {
+    if (!state.zkappWorkerClient) return;
+    setDisplayText('Checking if fee payer account exists...');
+    const res = await state.zkappWorkerClient.fetchAccount({
+      publicKey: state.publicKey!,
+    });
+    const accountExists = res.error == null;
+    setState({ ...state, accountExists });
+    setSetupStage({ ...setupStage, accountChecked: true });
+  };
+
+  const initializeZkApp = async () => {
+    if (!state.zkappWorkerClient) return;
+    await state.zkappWorkerClient.loadContract();
+    setDisplayText('Compiling zkApp...');
+    await state.zkappWorkerClient.compileContract();
+    setDisplayText('zkApp compiled');
+
+    const zkappPublicKey = PublicKey.fromBase58(ZKAPP_ADDRESS);
+    await state.zkappWorkerClient.initZkappInstance(zkappPublicKey);
+
+    setDisplayText('Getting zkApp state...');
+    await state.zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey });
+    setDisplayText('zkApp initialized');
+
+    setState({ ...state, zkappPublicKey, hasBeenSetup: true });
+    setSetupStage({ ...setupStage, zkAppInitialized: true });
+  };
 
   const connectWallet = async () => {
     if (typeof window.ethereum !== 'undefined') {
       try {
-        // Request account access
         await window.ethereum.request({ method: 'eth_requestAccounts' });
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         const address = await signer.getAddress();
         setEthAddress(address);
   
-        // Switch to Arbitrum Sepolia
         try {
           await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x66eee' }], // Chain ID for Arbitrum Sepolia
+            params: [{ chainId: '0x66eee' }],
           });
         } catch (switchError: any) {
-          // This error code indicates that the chain has not been added to MetaMask
           if (switchError.code === 4902) {
             try {
               await window.ethereum.request({
@@ -562,153 +141,46 @@ export default function Home() {
       console.log('Please install MetaMask!');
     }
   };
-  
 
-  const createNewToken = async (tokenName: string, tokenSymbol: string, initialSupply: string) => {
-    if (typeof window.ethereum !== 'undefined' && isVerified) {
-      try {
-        console.log("Creating new token...");
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
+  const createNewToken = async (tokenName: string, tokenSymbol: string) => {
+    try {
+      setIsLoading(true);
+      setDisplayText('Creating token...');
   
-        const factory = new ethers.Contract(TOKEN_FACTORY_ADDRESS, TokenFactoryABI, signer);
-        console.log("Factory contract initialized");
+      const formData = new URLSearchParams();
+      formData.append('tokenName', tokenName);
+      formData.append('tokenSymbol', tokenSymbol);
   
-        // Convert initialSupply to wei (assuming 18 decimals)
-        const initialSupplyWei = ethers.parseEther(initialSupply);
+      const response = await fetch('http://localhost:3001/pump/deploy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+      });
   
-        // Create a new token
-        const tx = await factory.createToken(tokenName, tokenSymbol);
-        console.log("Token creation transaction sent:", tx.hash);
-        const receipt = await tx.wait();
-        console.log("Token creation transaction confirmed:", receipt.transactionHash);
-  
-        // Get the new token address from the event logs
-        const event = receipt.logs.find((log: Log) => 
-          log.topics[0] === ethers.id("TokenCreated(address,string,string,address)")
-        );
-  
-        if (!event) {
-          throw new Error("TokenCreated event not found in transaction logs");
-        }
-  
-        const [newTokenAddress, , , owner] = ethers.AbiCoder.defaultAbiCoder().decode(
-          ['address', 'string', 'string', 'address'], 
-          event.data
-        );
-  
-        console.log('New token created at:', newTokenAddress);
-        console.log('Token owner:', owner);
-  
-        // Now, let's mint the initial supply
-        const newToken = new ethers.Contract(newTokenAddress, CustomTokenABI, signer);
-        console.log("Minting initial supply...");
-        const mintTx = await newToken.mint(await signer.getAddress(), initialSupplyWei);
-        console.log("Mint transaction sent:", mintTx.hash);
-        const mintReceipt = await mintTx.wait();
-        console.log("Mint transaction confirmed:", mintReceipt.transactionHash);
-  
-        setCustom_TOKEN_ADDRESS(newTokenAddress);
-        
-        setDisplayText(`New token "${tokenName}" (${tokenSymbol}) created successfully at ${newTokenAddress}. Initial supply of ${initialSupply} tokens minted to your address.`);
-      } catch (error) {
-        console.error('Error creating or minting token', error);
-        setDisplayText('Error creating or minting token. Check console for details.');
+      if (!response.ok) {
+        throw new Error('Failed to create token');
       }
-    } else {
-      setDisplayText('Please connect your wallet and verify your signature first.');
+  
+      setDisplayText('Token created. Waiting for confirmation...');
+  
+      const data = await response.json();
+  
+      console.log('Token created:', data);
+      setTokenAddress(data.tokenAddress);
+      setMintedAmount(data.mintedAmount);
+  
+      setDisplayText(`Token created successfully! Address: ${data.tokenAddress}`);
+      alert(`Token created successfully! Address: ${data.tokenAddress}`);
+    } catch (error) {
+      console.error('Error creating token:', error);
+      setDisplayText('Failed to create token. Please try again.');
+      alert('Failed to create token. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
-  
-  // Add this useEffect to load the Solidity compiler
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://solc-bin.ethereum.org/bin/soljson-v0.8.20+commit.a1b79de6.js';
-    script.async = true;
-    document.body.appendChild(script);
-  }, []);
-  // -------------------------------------------------------
-  // Mina Setup
-
-  useEffect(() => {
-    (async () => {
-      if (!state.hasBeenSetup) {
-        setDisplayText('Loading web worker...');
-        const zkappWorkerClient = new ZkappWorkerClient();
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-
-        setDisplayText('Done loading web worker');
-
-        await zkappWorkerClient.setActiveInstanceToDevnet();
-
-        const mina = (window as any).mina;
-
-        if (mina == null) {
-          setState({ ...state, hasWallet: false });
-          return;
-        }
-
-        const publicKeyBase58: string = (await mina.requestAccounts())[0];
-        const publicKey = PublicKey.fromBase58(publicKeyBase58);
-
-        setDisplayText(`Using key:${publicKey.toBase58()}`);
-
-        setDisplayText('Checking if fee payer account exists...');
-
-        const res = await zkappWorkerClient.fetchAccount({
-          publicKey: publicKey!,
-        });
-
-        const accountExists = res.error == null;
-
-        await zkappWorkerClient.loadContract();
-
-        setDisplayText('Compiling zkApp...');
-        await zkappWorkerClient.compileContract();
-        setDisplayText('zkApp compiled...');
-
-        const zkappPublicKey = PublicKey.fromBase58(ZKAPP_ADDRESS);
-
-        await zkappWorkerClient.initZkappInstance(zkappPublicKey);
-
-        setDisplayText('Getting zkApp state...');
-        await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey });
-        setDisplayText('');
-
-        setState({
-          ...state,
-          zkappWorkerClient,
-          hasWallet: true,
-          hasBeenSetup: true,
-          publicKey,
-          zkappPublicKey,
-          accountExists,
-        });
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      if (state.hasBeenSetup && !state.accountExists) {
-        for (;;) {
-          setDisplayText('Checking if fee payer account exists...');
-          const res = await state.zkappWorkerClient!.fetchAccount({
-            publicKey: state.publicKey!,
-          });
-          const accountExists = res.error == null;
-          if (accountExists) {
-            break;
-          }
-          await new Promise((resolve) => setTimeout(resolve, 5000));
-        }
-        setState({ ...state, accountExists: true });
-      }
-    })();
-  }, [state.hasBeenSetup]);
-
-  // -------------------------------------------------------
-  // Send a transaction
 
   const onVerifySignature = async () => {
     setState({ ...state, creatingTransaction: true });
@@ -796,122 +268,119 @@ export default function Home() {
     }
   };
 
+  // New functions for handling the popup
+  const handleCreateMemeToken = () => {
+    setShowPopup(true);
+  };
 
-  let hasWallet;
-  if (state.hasWallet != null && !state.hasWallet) {
-    const auroLink = 'https://www.aurowallet.com/';
-    const auroLinkElem = (
-      <a href={auroLink} target="_blank" rel="noreferrer">
-        Install Auro wallet here
-      </a>
-    );
-    hasWallet = <div>Could not find a wallet. {auroLinkElem}</div>;
-  }
+  const handleSubmitToken = async () => {
+    console.log(`Creating token: ${tokenName} (${tokenSymbol})`);
+    await createNewToken(tokenName, tokenSymbol);
+  };
 
-  const stepDisplay = transactionlink ? (
-    <a
-      href={transactionlink}
-      target="_blank"
-      rel="noreferrer"
-      style={{ textDecoration: 'underline' }}
-    >
-      View transaction
-    </a>
-  ) : (
-    displayText
-  );
-
-  let setup = (
-    <div
-      className={styles.start}
-      style={{ fontWeight: 'bold', fontSize: '1.5rem', paddingBottom: '5rem' }}
-    >
-      {stepDisplay}
-      {hasWallet}
-    </div>
-  );
-
-  let accountDoesNotExist;
-  if (state.hasBeenSetup && !state.accountExists) {
-    const faucetLink =
-      'https://faucet.minaprotocol.com/?address=' + state.publicKey!.toBase58();
-    accountDoesNotExist = (
-      <div>
-        <span style={{ paddingRight: '1rem' }}>Account does not exist.</span>
-        <a href={faucetLink} target="_blank" rel="noreferrer">
-          Visit the faucet to fund this fee payer account
-        </a>
-      </div>
-    );
-  }
-
+  const activateMina = async () => {
+    setShowPopup(false);
+    await loadWorker();
+  };
 
   let mainContent;
-
-
-  if (state.hasBeenSetup && state.accountExists) {
+  if (!setupStage.workerLoaded) {
     mainContent = (
+      <button className={styles.card} onClick={handleCreateMemeToken}>
+        Create Meme Token!
+      </button>
+    );
+  } else if (!setupStage.walletChecked) {
+    mainContent = (
+      <button className={styles.card} onClick={checkWallet}>
+        Check Wallet
+      </button>
+    );
+  } else if (!setupStage.accountChecked) {
+    mainContent = (
+      <button className={styles.card} onClick={checkAccount}>
+        Check Account
+      </button>
+    );
+  } else if (!setupStage.zkAppInitialized) {
+    mainContent = (
+      <button className={styles.card} onClick={initializeZkApp}>
+        Initialize zkApp
+      </button>
+    );
+  } else if (state.hasBeenSetup && state.accountExists) {
+    // ... (keep your existing content for when setup is complete)
+  }
 
-      <div style={{ justifyContent: 'center', alignItems: 'center' }}>
-        <div className={styles.center} style={{ padding: 0 }}>
-          Verify Signature
+  return (
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <div className={styles.logo}>
+
+          <h1>Pump.Z</h1>
         </div>
-        <button
-          className={styles.card}
-          onClick={onVerifySignature}
-          disabled={state.creatingTransaction}
-        >
-          Verify Signature
-        </button>
+        <nav className={styles.nav}>
+          <a href="#" className={styles.navLink}>Home</a>
+          <a href="#" className={styles.navLink}>About</a>
+          <a href="#" className={styles.navLink}>Contact</a>
+        </nav>
+      </header>
 
+      <main className={styles.main}>
+        <h2 className={styles.title}>The ultimate meme coin pump station!</h2>
 
+        <div className={styles.buttonContainer}>
+          <button className={styles.button} onClick={handleCreateMemeToken}>
+            Create Meme Token!
+          </button>
+        </div>
 
-        
-        <button className={styles.card} onClick={connectWallet}>
-          Connect Ethereum Wallet
-        </button>
-        {ethAddress && <p>Connected Ethereum Address: {ethAddress}</p>}
-        {isVerified && (
-            <div>
-              <input 
-                type="text" 
-                placeholder="Token Name" 
+        {setupStage.workerLoaded && !setupStage.walletChecked && (
+          <button className={styles.button} onClick={checkWallet}>
+            Check Wallet
+          </button>
+        )}
+        {setupStage.walletChecked && !setupStage.accountChecked && (
+          <button className={styles.button} onClick={checkAccount}>
+            Check Account
+          </button>
+        )}
+        {setupStage.accountChecked && !setupStage.zkAppInitialized && (
+          <button className={styles.button} onClick={initializeZkApp}>
+            Initialize zkApp
+          </button>
+        )}
+
+        {displayText && <div className={styles.status}>{displayText}</div>}
+
+        {showPopup && (
+          <div className={styles.popup}>
+            <div className={styles.popupContent}>
+              <h2>Create Your Meme Token</h2>
+              <input
+                type="text"
+                placeholder="Token Name"
                 value={tokenName}
                 onChange={(e) => setTokenName(e.target.value)}
               />
-              <input 
-                type="text" 
-                placeholder="Token Symbol" 
+              <input
+                type="text"
+                placeholder="Token Symbol"
                 value={tokenSymbol}
                 onChange={(e) => setTokenSymbol(e.target.value)}
               />
-              <input 
-                type="text" 
-                placeholder="Initial Supply" 
-                value={initialSupply}
-                onChange={(e) => setInitialSupply(e.target.value)}
-              />
-              <button onClick={() => createNewToken(tokenName, tokenSymbol, initialSupply)}>
-                Create Token
-              </button>
+
+              <button onClick={handleSubmitToken}>Create Token</button>
+              <button onClick={activateMina}>Activate Mina</button>
+              <button onClick={() => setShowPopup(false)}>Cancel</button>
             </div>
+          </div>
         )}
-      </div>
-    );
-  }
+      </main>
 
-
-  return (
-    <GradientBG>
-      <div className={styles.main} style={{ padding: 0 }}>
-        <div className={styles.center} style={{ padding: 0 }}>
-          {setup}
-          {accountDoesNotExist}
-          {mainContent}
-        </div>
-      </div>
-    </GradientBG>
+      <footer className={styles.footer}>
+        <p>&copy; 2023 Pump.Z. All rights reserved.</p>
+      </footer>
+    </div>
   );
-
-  // ... (keep the return statement unchanged)
 }
