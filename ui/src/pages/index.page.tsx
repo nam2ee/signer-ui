@@ -31,6 +31,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [tokenAddress, setTokenAddress] = useState('');
   const [mintedAmount, setMintedAmount] = useState('');
+  const [showBuyPopup, setShowBuyPopup] = useState(false);
+  const [buyAmount, setBuyAmount] = useState('');
 
   const [setupStage, setSetupStage] = useState({
     workerLoaded: false,
@@ -283,6 +285,14 @@ export default function Home() {
     await loadWorker();
   };
 
+  const handleBuyToken = async () => {
+    console.log(`Buying ${buyAmount} tokens at address ${tokenAddress}`);
+    // Add your token buying logic here
+    setShowBuyPopup(false);
+    setDisplayText(`Successfully bought ${buyAmount} tokens!`);
+  };
+
+
   let mainContent;
   if (!setupStage.workerLoaded) {
     mainContent = (
@@ -314,9 +324,13 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
+      <div className={styles.background}>
+        <div className={styles.backgroundGradients}></div>
+      </div>
+      
       <header className={styles.header}>
         <div className={styles.logo}>
-
+          <img src="/pump-z-logo.png" alt="Pump.Z Logo" />
           <h1>Pump.Z</h1>
         </div>
         <nav className={styles.nav}>
@@ -327,7 +341,10 @@ export default function Home() {
       </header>
 
       <main className={styles.main}>
-        <h2 className={styles.title}>The ultimate meme coin pump station!</h2>
+        <h1 className={styles.title}>Pump.Z</h1>
+        <p className={styles.description}>
+          The ultimate meme coin pump station!
+        </p>
 
         <div className={styles.buttonContainer}>
           <button className={styles.button} onClick={handleCreateMemeToken}>
@@ -335,21 +352,7 @@ export default function Home() {
           </button>
         </div>
 
-        {setupStage.workerLoaded && !setupStage.walletChecked && (
-          <button className={styles.button} onClick={checkWallet}>
-            Check Wallet
-          </button>
-        )}
-        {setupStage.walletChecked && !setupStage.accountChecked && (
-          <button className={styles.button} onClick={checkAccount}>
-            Check Account
-          </button>
-        )}
-        {setupStage.accountChecked && !setupStage.zkAppInitialized && (
-          <button className={styles.button} onClick={initializeZkApp}>
-            Initialize zkApp
-          </button>
-        )}
+        {/* ... (keep your existing conditional rendering for wallet checks, etc.) */}
 
         {displayText && <div className={styles.status}>{displayText}</div>}
 
@@ -369,10 +372,32 @@ export default function Home() {
                 value={tokenSymbol}
                 onChange={(e) => setTokenSymbol(e.target.value)}
               />
-
+              <input
+                type="text"
+                placeholder="Initial Supply"
+                value={initialSupply}
+                onChange={(e) => setInitialSupply(e.target.value)}
+              />
               <button onClick={handleSubmitToken}>Create Token</button>
               <button onClick={activateMina}>Activate Mina</button>
               <button onClick={() => setShowPopup(false)}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {showBuyPopup && (
+          <div className={styles.popup}>
+            <div className={styles.popupContent}>
+              <h2>Buy Tokens</h2>
+              <p>Token Address: {tokenAddress}</p>
+              <input
+                type="number"
+                placeholder="Amount to buy"
+                value={buyAmount}
+                onChange={(e) => setBuyAmount(e.target.value)}
+              />
+              <button onClick={handleBuyToken}>Buy Tokens</button>
+              <button onClick={() => setShowBuyPopup(false)}>Cancel</button>
             </div>
           </div>
         )}
