@@ -1,15 +1,88 @@
-.container {
-  display: flex;
+.pageContainer {
   min-height: 100vh;
   background-color: #1c1c1c;
   color: #ffd700;
   font-family: Arial, sans-serif;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #2a2a2a;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.logo h1 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+}
+
+.navLink {
+  color: #ffd700;
+  text-decoration: none;
+  margin-right: 20px;
+}
+
+.connectWalletButton,
+.profileButton {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-left: 10px;
+}
+
+.connectWalletButton:hover,
+.profileButton:hover {
+  background-color: #45a049;
+}
+
+.profileButton {
+  background-color: #ffd700;
+  color: #1c1c1c;
+}
+
+.profileButton:hover {
+  background-color: #e6c200;
+}
+
+/* ... (keep all other existing styles) */
+
+
 .chartSection {
   flex: 2;
+  background-color: #2a2a2a;
   padding: 20px;
-  border-right: 1px solid #333;
+  border-radius: 8px;
+}
+
+.tradingSection {
+  flex: 1;
+  background-color: #2a2a2a;
+  padding: 20px;
+  border-radius: 8px;
 }
 
 .sectionTitle {
@@ -18,7 +91,7 @@
 }
 
 .tokenAddress {
-  background-color: #2a2a2a;
+  background-color: #1c1c1c;
   padding: 10px;
   border-radius: 5px;
   margin-bottom: 15px;
@@ -31,7 +104,7 @@
 }
 
 .chart {
-  background-color: #2a2a2a;
+  background-color: #1c1c1c;
   height: 400px;
   display: flex;
   justify-content: center;
@@ -39,13 +112,8 @@
   border-radius: 8px;
 }
 
-.tradingSection {
-  flex: 1;
-  padding: 20px;
-}
-
 .tokenInfo {
-  background-color: #2a2a2a;
+  background-color: #1c1c1c;
   padding: 15px;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -54,6 +122,7 @@
 .tradeButtons {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 20px;
 }
 
 .tradeButtons button {
@@ -66,6 +135,38 @@
   cursor: pointer;
   font-size: 16px;
   font-weight: bold;
+}
+
+.holdersTable {
+  background-color: #1c1c1c;
+  border-radius: 8px;
+  padding: 15px;
+  overflow-x: auto;
+}
+
+.holdersTable table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.holdersTable th,
+.holdersTable td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #444;
+}
+
+.holdersTable th {
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.holdersTable tr:last-child td {
+  border-bottom: none;
+}
+
+.holdersTable tr:hover {
+  background-color: #333;
 }
 
 .modal {
@@ -115,36 +216,3 @@
   font-weight: bold;
 }
 
-
-.holdersTable {
-  margin-top: 20px;
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  padding: 15px;
-  overflow-x: auto;
-}
-
-.holdersTable table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.holdersTable th,
-.holdersTable td {
-  text-align: left;
-  padding: 8px;
-  border-bottom: 1px solid #444;
-}
-
-.holdersTable th {
-  font-weight: bold;
-  color: #ffd700;
-}
-
-.holdersTable tr:last-child td {
-  border-bottom: none;
-}
-
-.holdersTable tr:hover {
-  background-color: #333;
-}

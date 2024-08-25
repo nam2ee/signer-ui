@@ -1,0 +1,123 @@
+.pageContainer {
+    min-height: 100vh;
+    background-color: #1c1c1c;
+    color: #ffd700;
+    font-family: Arial, sans-serif;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #2a2a2a;
+  }
+  
+  .logo {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo img {
+    height: 40px;
+    margin-right: 10px;
+  }
+  
+  .logo h1 {
+    font-size: 24px;
+    margin: 0;
+  }
+  
+  .nav {
+    display: flex;
+    align-items: center;
+  }
+  
+  .navLink {
+    color: #ffd700;
+    text-decoration: none;
+    margin-left: 20px;
+  }
+  
+  .main {
+    padding: 20px;
+  }
+  
+  .profileHeader {
+    background-color: #2a2a2a;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .profileHeader h2 {
+    margin: 0;
+    font-size: 24px;
+  }
+  
+  .walletAddress {
+    font-size: 14px;
+    color: #ccc;
+    margin-top: 10px;
+  }
+  
+  .balance {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  
+  .profileContent {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .coinsSection {
+    background-color: #2a2a2a;
+    padding: 20px;
+    border-radius: 8px;
+    flex: 1;
+  }
+  
+  .coinsSection h3 {
+    margin-top: 0;
+  }
+  
+  .coinsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  .coinsTable th,
+  .coinsTable td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #444;
+  }
+  
+  .coinsTable th {
+    font-weight: bold;
+    color: #ffd700;
+  }
+  
+  .coinsTable tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .coinsTable tr:hover {
+    background-color: #333;
+  }
+  
+  .clickableRow td a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .clickableRow:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+  }
