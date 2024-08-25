@@ -1,0 +1,150 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #1c1c1c;
+  color: #ffd700;
+  font-family: Arial, sans-serif;
+}
+
+.chartSection {
+  flex: 2;
+  padding: 20px;
+  border-right: 1px solid #333;
+}
+
+.sectionTitle {
+  color: #ffd700;
+  margin-bottom: 15px;
+}
+
+.tokenAddress {
+  background-color: #2a2a2a;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+}
+
+.tokenAddress span:first-child {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.chart {
+  background-color: #2a2a2a;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.tradingSection {
+  flex: 1;
+  padding: 20px;
+}
+
+.tokenInfo {
+  background-color: #2a2a2a;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.tradeButtons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tradeButtons button {
+  width: 48%;
+  padding: 10px;
+  background-color: #ffd700;
+  color: #1c1c1c;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modalContent {
+  background-color: #2a2a2a;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+}
+
+.modalTitle {
+  margin-top: 0;
+  color: #ffd700;
+}
+
+.modalContent input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #ffd700;
+  background-color: #1c1c1c;
+  color: #ffd700;
+}
+
+.modalContent button {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #ffd700;
+  color: #1c1c1c;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+
+.holdersTable {
+  margin-top: 20px;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 15px;
+  overflow-x: auto;
+}
+
+.holdersTable table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.holdersTable th,
+.holdersTable td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #444;
+}
+
+.holdersTable th {
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.holdersTable tr:last-child td {
+  border-bottom: none;
+}
+
+.holdersTable tr:hover {
+  background-color: #333;
+}

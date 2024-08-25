@@ -33,6 +33,7 @@ export default function Home() {
   const [mintedAmount, setMintedAmount] = useState('');
   const [showBuyPopup, setShowBuyPopup] = useState(false);
   const [buyAmount, setBuyAmount] = useState('');
+  const [showCreatePopup, setShowCreatePopup] = useState(false);
 
   const [setupStage, setSetupStage] = useState({
     workerLoaded: false,
@@ -42,7 +43,7 @@ export default function Home() {
   });
 
   // New state for popup
-  const [showPopup, setShowPopup] = useState(false);
+
 
   const loadWorker = async () => {
     setDisplayText('Loading web worker...');
@@ -272,24 +273,37 @@ export default function Home() {
 
   // New functions for handling the popup
   const handleCreateMemeToken = () => {
-    setShowPopup(true);
+    setShowCreatePopup(true);
   };
 
   const handleSubmitToken = async () => {
     console.log(`Creating token: ${tokenName} (${tokenSymbol})`);
     await createNewToken(tokenName, tokenSymbol);
+    await setShowCreatePopup(false)
+    setShowBuyPopup(true);
   };
 
   const activateMina = async () => {
-    setShowPopup(false);
+    setShowCreatePopup(false);
     await loadWorker();
   };
 
   const handleBuyToken = async () => {
-    console.log(`Buying ${buyAmount} tokens at address ${tokenAddress}`);
-    // Add your token buying logic here
-    setShowBuyPopup(false);
-    setDisplayText(`Successfully bought ${buyAmount} tokens!`);
+
+    setDisplayText(`Buying ${buyAmount} tokens, please wait...`);
+    
+    try {
+      
+      connectWallet()
+      
+
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setDisplayText(`Successfully bought ${buyAmount} tokens!`);
+      setShowBuyPopup(false);
+    } catch (error) {
+      setDisplayText(`Error buying tokens: ${error}`);
+    }
   };
 
 
@@ -339,24 +353,24 @@ export default function Home() {
           <a href="#" className={styles.navLink}>Contact</a>
         </nav>
       </header>
-
+  
       <main className={styles.main}>
         <h1 className={styles.title}>Pump.Z</h1>
         <p className={styles.description}>
           The ultimate meme coin pump station!
         </p>
-
+  
         <div className={styles.buttonContainer}>
           <button className={styles.button} onClick={handleCreateMemeToken}>
             Create Meme Token!
           </button>
         </div>
-
+  
         {/* ... (keep your existing conditional rendering for wallet checks, etc.) */}
-
+  
         {displayText && <div className={styles.status}>{displayText}</div>}
-
-        {showPopup && (
+  
+        {showCreatePopup && (
           <div className={styles.popup}>
             <div className={styles.popupContent}>
               <h2>Create Your Meme Token</h2>
@@ -380,11 +394,11 @@ export default function Home() {
               />
               <button onClick={handleSubmitToken}>Create Token</button>
               <button onClick={activateMina}>Activate Mina</button>
-              <button onClick={() => setShowPopup(false)}>Cancel</button>
+              <button onClick={() => setShowCreatePopup(false)}>Cancel</button>
             </div>
           </div>
         )}
-
+  
         {showBuyPopup && (
           <div className={styles.popup}>
             <div className={styles.popupContent}>
@@ -402,10 +416,12 @@ export default function Home() {
           </div>
         )}
       </main>
-
+  
       <footer className={styles.footer}>
         <p>&copy; 2023 Pump.Z. All rights reserved.</p>
       </footer>
     </div>
   );
+
+
 }
