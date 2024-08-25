@@ -1,0 +1,64 @@
+.pageContainer {
+  min-height: 100vh;
+  background-color: #1c1c1c;
+  color: #ffd700;
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #2a2a2a;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo h1 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+}
+
+.navLink {
+  color: #ffd700;
+  text-decoration: none;
+  margin-right: 20px;
+}
+
+.connectWalletButton,
+.profileButton {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-left: 10px;
+}
+
+.connectWalletButton:hover,
+.profileButton:hover {
+  background-color: #45a049;
+}
+
+.profileButton {
+  background-color: #ffd700;
+  color: #1c1c1c;
+}
+
+.profileButton:hover {
+  background-color: #e6c200;
+}

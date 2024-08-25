@@ -5,6 +5,8 @@ import GradientBG from '../components/GradientBG.js';
 import styles from '../styles/Home.module.css';
 import './reactCOIServiceWorker';
 import ZkappWorkerClient from './zkappWorkerClient';
+import Header from '@/components/Header';
+
 
 let transactionFee = 0.1;
 const ZKAPP_ADDRESS = 'B62qjiQ3CsBGHZw9YQPvLdJ93Awzf9giKTELhYT4BU68kqGJvhWgauK';
@@ -295,7 +297,7 @@ export default function Home() {
     try {
       
       connectWallet()
-      
+
 
 
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -342,18 +344,8 @@ export default function Home() {
         <div className={styles.backgroundGradients}></div>
       </div>
       
-      <header className={styles.header}>
-        <div className={styles.logo}>
-          <img src="/pump-z-logo.png" alt="Pump.Z Logo" />
-          <h1>Pump.Z</h1>
-        </div>
-        <nav className={styles.nav}>
-          <a href="#" className={styles.navLink}>Home</a>
-          <a href="#" className={styles.navLink}>About</a>
-          <a href="#" className={styles.navLink}>Contact</a>
-        </nav>
-      </header>
-  
+      <Header ethAddress={ethAddress} connectWallet={connectWallet} />
+
       <main className={styles.main}>
         <h1 className={styles.title}>Pump.Z</h1>
         <p className={styles.description}>
