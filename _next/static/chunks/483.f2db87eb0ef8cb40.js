@@ -427,8 +427,8 @@ __decorate([
 ], Kakaoproof.prototype, "verify", null);
 const state = {
     VerifySignature: null,
-    Kakaoproof: null,
-    StatusProof: null,
+    Kakaoproof: Kakaoproof,
+    StatusProof: StatusProof,
     zkapp: null,
     zkapp2: null,
     transaction: null

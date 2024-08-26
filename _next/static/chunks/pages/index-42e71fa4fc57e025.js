@@ -206,6 +206,11 @@ class ZkappWorkerClient {
             publicKey58: publicKey.toBase58()
         });
     }
+    initZkappInstance2(publicKey) {
+        return this._call("initZkappInstance2", {
+            publicKey58: publicKey.toBase58()
+        });
+    }
     createVerifySignatureTransaction(publicKey, signature, messageField) {
         return this._call("createVerifySignatureTransaction", {
             publicKey: publicKey,
@@ -269,6 +274,7 @@ var dist = __webpack_require__(3027);
 
 let transactionFee = 0.1;
 const ZKAPP_ADDRESS = "B62qjiQ3CsBGHZw9YQPvLdJ93Awzf9giKTELhYT4BU68kqGJvhWgauK";
+const ZKAPP_ADDRESS2 = "B62qpvTrxKKENHQNwpaHMZ8Dy8EnhGrRpAtyjuoJnmAqWcsuQLB6wTs";
 const YUMI_TOKEN_ADDRESS = "0x19DC7fB41Cc753E2156e10Eb3E94d96b36251EEb";
 const APP_ID = "0x490133eBccf78524191868C6DD93fea80B7b5415" || 0;
 const APP_SECRET = "0x3f40de94e388f28affc69f1270166945ab1ceec8d5a09d0713cc7016da719f59" || 0;
@@ -302,31 +308,6 @@ function Home() {
     const displayProofData = (proof)=>{
         setProofData(JSON.stringify(proof, null, 2));
     };
-    (0,react.useEffect)(()=>{
-        const handleMessage = async (event)=>{
-            console.log("메세지가 도착했습니다");
-            if (event.source !== window) return;
-            if (event.data.action === "Proof") {
-                console.log("proof", event.data);
-                await setRealProof(event.data.proof);
-                updateProofStatus("Proof Received");
-            } else if (event.data.action === "ProofStatus") {
-                updateProofStatus(event.data.status);
-            } else if (event.data.action === "Data") {
-                console.log("data", event.data.data);
-                await setVerifiData(event.data.data);
-                updateProofStatus("Data Received");
-            } else if (event.data.action === "Hash") {
-                console.log("hash", event.data.hash);
-                await setVerifiHash(event.data.hash);
-                updateProofStatus("Hash Received");
-            }
-        };
-        window.addEventListener("message", handleMessage);
-        return ()=>{
-            window.removeEventListener("message", handleMessage);
-        };
-    }, []);
     const requestProof = ()=>{
         window.postMessage({
             type: "FROM_PAGE",
@@ -443,6 +424,7 @@ function Home() {
             if (!state.hasBeenSetup) {
                 setDisplayText("Loading web worker...");
                 const zkappWorkerClient = new ZkappWorkerClient();
+                console.log("zkappWorkerClient created...");
                 await new Promise((resolve)=>setTimeout(resolve, 5000));
                 setDisplayText("Done loading web worker");
                 await zkappWorkerClient.setActiveInstanceToDevnet();
@@ -465,10 +447,14 @@ function Home() {
                 await zkappWorkerClient.loadContract();
                 setDisplayText("Compiling zkApp...");
                 await zkappWorkerClient.compileContract();
+                console.log("zkApp1 compiled...");
                 await zkappWorkerClient.compileContract2();
+                console.log("zkApp2 compiled...");
                 setDisplayText("zkApp compiled...");
                 const zkappPublicKey = web/* PublicKey */.nh.fromBase58(ZKAPP_ADDRESS);
                 await zkappWorkerClient.initZkappInstance(zkappPublicKey);
+                const zkappPublicKey2 = web/* PublicKey */.nh.fromBase58(ZKAPP_ADDRESS2);
+                await zkappWorkerClient.initZkappInstance2(zkappPublicKey2);
                 setDisplayText("Getting zkApp state...");
                 await zkappWorkerClient.fetchAccount({
                     publicKey: zkappPublicKey
@@ -506,6 +492,37 @@ function Home() {
                 });
             }
         })();
+    }, [
+        state.hasBeenSetup
+    ]);
+    (0,react.useEffect)(()=>{
+        const handleMessage = async (event)=>{
+            console.log("메세지가 도착했습니다");
+            if (event.source !== window) return;
+            if (event.data.action === "Proof") {
+                setRealProof(event.data.proof);
+                console.log("proof", event.data.proof);
+                console.log(state.zkappWorkerClient);
+                if (state.zkappWorkerClient != null) {
+                    await VerifyProof(event.data.proof);
+                }
+                updateProofStatus("Proof Received");
+            } else if (event.data.action === "ProofStatus") {
+                updateProofStatus(event.data.status);
+            } else if (event.data.action === "Data") {
+                setVerifiData(event.data.data);
+                console.log("data", VerifiData);
+                updateProofStatus("Data Received");
+            } else if (event.data.action === "Hash") {
+                console.log("hash", event.data.hash);
+                setVerifiHash(event.data.hash);
+                updateProofStatus("Hash Received");
+            }
+        };
+        window.addEventListener("message", handleMessage);
+        return ()=>{
+            window.removeEventListener("message", handleMessage);
+        };
     }, [
         state.hasBeenSetup
     ]);
@@ -586,19 +603,25 @@ function Home() {
             }
         }
     };
-    const VerifyProof = async ()=>{
+    const VerifyProof = async (proof)=>{
         setState({
             ...state,
             creatingTransaction: true
         });
+        if (!state.zkappWorkerClient) {
+            console.error("zkappWorkerClient is not initialized");
+            setDisplayText("Error: zkappWorkerClient is not initialized");
+            return;
+        }
+        console.log("go!");
         setDisplayText("Creating a transaction...");
-        await state.zkappWorkerClient.fetchAccount({
-            publicKey: state.publicKey
-        });
         try {
-            await state.zkappWorkerClient.Verificationproof("", "", RealProof);
+            console.log("시작");
+            console.log("proof", proof);
+            await state.zkappWorkerClient.Verificationproof("", "", proof);
             setDisplayText("Creating proof...");
             await state.zkappWorkerClient.proveTransaction();
+            console.log("prooved tx");
             setDisplayText("Requesting send transaction...");
             const transactionJSON = await state.zkappWorkerClient.getTransactionJSON();
             setDisplayText("Getting transaction JSON...");
@@ -617,8 +640,7 @@ function Home() {
                 ...state,
                 creatingTransaction: false
             });
-            // Set verification status to true if the transaction is successful
-            setIsVerified(true);
+        // Set verification status to true if the transaction is successful
         } catch (error) {
             console.error("Error in transaction process:", error);
             if (error instanceof Error) {
@@ -776,16 +798,6 @@ function Home() {
                         /*#__PURE__*/ (0,jsx_runtime.jsx)("button", {
                             onClick: requestProof,
                             children: "Request Proof"
-                        }),
-                        /*#__PURE__*/ (0,jsx_runtime.jsx)("button", {
-                            onClick: ()=>{
-                                if (RealProof) {
-                                    VerifyProof();
-                                } else {
-                                    console.log("No proof found");
-                                }
-                            },
-                            children: "Verify"
                         }),
                         /*#__PURE__*/ (0,jsx_runtime.jsxs)("p", {
                             children: [
