@@ -3,7 +3,8 @@ import { useRouter } from 'next/router';
 import styles from '../../styles/Market.module.css';
 import Header from '@/components/Header';
 import { ethers } from 'ethers';
-
+import { Pump_Z_Token_ABI, PUMP_Z_TOKEN_ADDRESS } from '@/constants/contracts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 interface TokenData {
   name: string;
   symbol: string;
@@ -21,6 +22,10 @@ const MarketPage: React.FC = () => {
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [showSellModal, setShowSellModal] = useState(false);
   const [amount, setAmount] = useState('');
+  const [pumpZBalance, setPumpZBalance] = useState('0');
+  const [approveAmount, setApproveAmount] = useState('');
+  const [sellAmount, setSellAmount] = useState('');
+
 
   // Example data for top holders
   const topHolders = [
@@ -29,6 +34,16 @@ const MarketPage: React.FC = () => {
     { address: '0x789...012', percentage: '8.7%' },
     { address: '0xdef...abc', percentage: '6.2%' },
     { address: '0x345...678', percentage: '4.9%' },
+  ];
+
+  const dummyChartData = [
+    { name: 'Jan', price: 4000 },
+    { name: 'Feb', price: 3000 },
+    { name: 'Mar', price: 5000 },
+    { name: 'Apr', price: 2780 },
+    { name: 'May', price: 1890 },
+    { name: 'Jun', price: 2390 },
+    { name: 'Jul', price: 3490 },
   ];
 
   useEffect(() => {
@@ -97,17 +112,122 @@ const MarketPage: React.FC = () => {
     }
   };
 
-  const handleBuy = () => {
-    console.log('Buying:', amount);
-    setShowBuyModal(false);
-    setAmount('');
+  const buyPumpZToken = async () => {
+    try {
+      // Implement the logic to buy PumpZ tokens
+      // This might involve calling a smart contract function
+      // Update the balance after successful purchase
+      // For example:
+      // const result = await contractInstance.buyPumpZTokens(amount);
+      // if (result.success) {
+      //   const newBalance = await contractInstance.balanceOf(ethAddress);
+      //   setPumpZBalance(newBalance.toString());
+      // }
+      console.log('Buying PumpZ tokens...');
+    } catch (error) {
+      console.error('Error buying PumpZ tokens:', error);
+    }
   };
 
-  const handleSell = () => {
-    console.log('Selling:', amount);
-    setShowSellModal(false);
-    setAmount('');
+  const handleBuy = async () => {
+    if (!approveAmount) {
+      alert("Please enter an amount to approve.");
+      return;
+    }
+
+    try {
+      console.log("Creating BrowserProvider");
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      console.log("Provider created:", provider);
+
+      console.log("provider: " + JSON.stringify(await provider.getNetwork()));
+
+      const signer = await provider.getSigner();
+      console.log("signer: " + JSON.stringify(signer));
+
+      const Pump_Z_Token_Contract = new ethers.Contract(PUMP_Z_TOKEN_ADDRESS, Pump_Z_Token_ABI, signer);
+
+      // Convert the approveAmount to wei
+      const approveAmountWei = ethers.parseEther(approveAmount);
+
+      const tx = await Pump_Z_Token_Contract.approve(PUMP_Z_TOKEN_ADDRESS, approveAmountWei);
+      console.log("Transaction sent:", tx.hash);
+
+      // Wait for the transaction to be mined
+      const receipt = await tx.wait();
+      console.log("Transaction confirmed:", receipt);
+
+      console.log("Approve token purchase successful!");
+
+      const buyTx = await Pump_Z_Token_Contract.buy({ value: approveAmountWei });
+      console.log("Buy transaction sent:", buyTx.hash);
+  
+      // Wait for the Buy transaction to be mined
+      const buyReceipt = await buyTx.wait();
+      console.log("Buy transaction confirmed:", buyReceipt);
+
+      setShowBuyModal(false);
+      setApproveAmount('');
+    } catch (error) {
+      console.error("Error in handleBuy:", error);
+      alert("Failed to approve tokens. Please check the console for more details.");
+    }
+  }
+
+  const handleSell = async () => {
+    if (!sellAmount) {
+      alert("Please enter an amount to sell.");
+      return;
+    }
+  
+    try {
+      console.log("Creating BrowserProvider");
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      console.log("Provider created:", provider);
+  
+      console.log("provider: " + JSON.stringify(await provider.getNetwork()));
+  
+      const signer = await provider.getSigner();
+      console.log("signer: " + JSON.stringify(signer));
+  
+      const Pump_Z_Token_Contract = new ethers.Contract(PUMP_Z_TOKEN_ADDRESS, Pump_Z_Token_ABI, signer);
+  
+      // Convert the sellAmount to wei
+      const sellAmountWei = ethers.parseEther(sellAmount);
+  
+      // First, approve the contract to spend the tokens
+      console.log("Approving tokens for sale...");
+      const approveTx = await Pump_Z_Token_Contract.approve(PUMP_Z_TOKEN_ADDRESS, sellAmountWei);
+      console.log("Approval transaction sent:", approveTx.hash);
+  
+      // Wait for the approval transaction to be mined
+      const approveReceipt = await approveTx.wait();
+      console.log("Approval transaction confirmed:", approveReceipt);
+  
+      // Now, call the sell function
+      console.log("Selling tokens...");
+      const sellTx = await Pump_Z_Token_Contract.sell(sellAmountWei);
+      console.log("Sell transaction sent:", sellTx.hash);
+  
+      // Wait for the sell transaction to be mined
+      const sellReceipt = await sellTx.wait();
+      console.log("Sell transaction confirmed:", sellReceipt);
+  
+      console.log("Token sale successful!");
+  
+      setShowSellModal(false);
+      setSellAmount('');
+  
+      // You might want to update the user's balance or other UI elements here
+      // For example, you could call a function to refresh the user's balance:
+      // await updateUserBalance();
+  
+    } catch (error) {
+      console.error("Error in handleSell:", error);
+      alert("Failed to sell tokens. Please check the console for more details.");
+    }
   };
+  
 
   const openBuyModal = () => {
     setShowBuyModal(true);
@@ -125,15 +245,24 @@ const MarketPage: React.FC = () => {
 
   return (
     <div className={styles.pageContainer}>
-      <Header ethAddress={ethAddress} connectWallet={connectWallet} />
+      <Header ethAddress={ethAddress} connectWallet={connectWallet} pumpZBalance={pumpZBalance}
+        buyPumpZToken={buyPumpZToken}/>
       <main className={styles.main}>
         <div className={styles.contentContainer}>
           <section className={styles.chartSection}>
             <h2 className={styles.sectionTitle}>Price Chart</h2>
             <p className={styles.contractAddress}>Contract Address: {contractAddress}</p>
             <div className={styles.chart}>
-              {/* Implement your chart component here */}
-              <p>Chart placeholder</p>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={dummyChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="price" stroke="#8884d8" activeDot={{ r: 8 }} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </section>
 
@@ -175,19 +304,19 @@ const MarketPage: React.FC = () => {
         </div>
 
         {showBuyModal && (
-          <div className={styles.modal}>
-            <div className={styles.modalContent}>
-              <h2 className={styles.modalTitle}>Buy Tokens</h2>
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="Amount to buy"
-              />
-              <button onClick={handleBuy}>Confirm Buy</button>
-              <button onClick={() => setShowBuyModal(false)}>Cancel</button>
-            </div>
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <h2 className={styles.modalTitle}>Approve Tokens</h2>
+            <input
+              type="number"
+              value={approveAmount}
+              onChange={(e) => setApproveAmount(e.target.value)}
+              placeholder="Amount to approve"
+            />
+            <button onClick={handleBuy}>Confirm Approve</button>
+            <button onClick={() => setShowBuyModal(false)}>Cancel</button>
           </div>
+        </div>
         )}
 
         {showSellModal && (
@@ -196,8 +325,8 @@ const MarketPage: React.FC = () => {
               <h2 className={styles.modalTitle}>Sell Tokens</h2>
               <input
                 type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                value={sellAmount}
+                onChange={(e) => setSellAmount(e.target.value)}
                 placeholder="Amount to sell"
               />
               <button onClick={handleSell}>Confirm Sell</button>

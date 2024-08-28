@@ -6,7 +6,7 @@ import styles from '../styles/Home.module.css';
 import './reactCOIServiceWorker';
 import ZkappWorkerClient from './zkappWorkerClient';
 import Header from '@/components/Header';
-
+import { PUMP_Z_TOKEN_ADDRESS, Pump_Z_Token_ABI } from '../constants/contracts';
 
 let transactionFee = 0.1;
 const ZKAPP_ADDRESS = 'B62qjiQ3CsBGHZw9YQPvLdJ93Awzf9giKTELhYT4BU68kqGJvhWgauK';
@@ -36,6 +36,7 @@ export default function Home() {
   const [showBuyPopup, setShowBuyPopup] = useState(false);
   const [buyAmount, setBuyAmount] = useState('');
   const [showCreatePopup, setShowCreatePopup] = useState(false);
+  const [pumpZBalance, setPumpZBalance] = useState('0');
 
   const [setupStage, setSetupStage] = useState({
     workerLoaded: false,
@@ -146,6 +147,54 @@ export default function Home() {
       console.log('Please install MetaMask!');
     }
   };
+
+  const buyPumpZToken = async () => {
+    setShowBuyPopup(true);
+  };
+  
+  const handleBuyPumpZ = async () => {
+    try {
+
+      if (typeof window.ethereum === 'undefined') {
+        throw new Error("No ethereum object found. Please install MetaMask.");
+      }
+
+      console.log("Creating BrowserProvider");
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      console.log("Provider created:", provider);
+
+      console.log("provider: " + JSON.stringify(provider.getNetwork()));
+
+      const signer = await provider.getSigner();
+      console.log("signer: " + JSON.stringify(signer))
+
+      const Pump_Z_Token_Contract = new ethers.Contract(PUMP_Z_TOKEN_ADDRESS, Pump_Z_Token_ABI, signer);
+
+      const ethAmountInWei = ethers.parseEther(buyAmount);
+
+      setDisplayText("Buying PUMP_Z tokens, please wait...");
+
+      // Call the buy function of the contract
+      const tx = await Pump_Z_Token_Contract.buy({value: ethers.parseEther(buyAmount) , gasLimit: 300000});
+      console.log("Transaction sent:", tx.hash);
+  
+      // Wait for the transaction to be mined
+      const receipt = await tx.wait();
+      console.log("Transaction confirmed:", receipt);
+  
+      console.log("PumpZ token purchase successful!");
+      alert(`Successfully purchased PUMP_Z tokens for ${buyAmount} ETH`);
+      
+      // Update the user's token balance here
+      // For example: updateUserBalance();
+  
+      setShowBuyPopup(false);
+    } catch (error) {
+      console.error("Error during PumpZ token purchase:", error);
+      alert('Failed to purchase PUMP_Z tokens. Please try again.');
+    }
+  };
+  
 
   const createNewToken = async (tokenName: string, tokenSymbol: string) => {
     try {
@@ -344,7 +393,8 @@ export default function Home() {
         <div className={styles.backgroundGradients}></div>
       </div>
       
-      <Header ethAddress={ethAddress} connectWallet={connectWallet} />
+      <Header ethAddress={ethAddress} connectWallet={connectWallet}pumpZBalance={pumpZBalance}
+        buyPumpZToken={buyPumpZToken}  />
 
       <main className={styles.main}>
         <h1 className={styles.title}>Pump.Z</h1>
@@ -402,7 +452,7 @@ export default function Home() {
                 value={buyAmount}
                 onChange={(e) => setBuyAmount(e.target.value)}
               />
-              <button onClick={handleBuyToken}>Buy Tokens</button>
+              <button onClick={handleBuyPumpZ}>Buy Tokens</button>
               <button onClick={() => setShowBuyPopup(false)}>Cancel</button>
             </div>
           </div>

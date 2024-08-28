@@ -23,7 +23,7 @@ const ProfilePage: React.FC = () => {
   const [coinsHeld, setCoinsHeld] = useState<any[]>([]);
   const [coinsCreated, setCoinsCreated] = useState<any[]>([]);
   const [ethAddress, setEthAddress] = useState('');
-
+  const [pumpZBalance, setPumpZBalance] = useState('0');
   useEffect(() => {
     if (walletAddress && typeof walletAddress === 'string') {
       fetchProfileData(walletAddress);
@@ -31,16 +31,44 @@ const ProfilePage: React.FC = () => {
   }, [walletAddress]);
 
   const fetchProfileData = async (address: string) => {
-    // TODO: Implement actual API calls to fetch data
-    setBalance('1000 ETH');
-    setCoinsHeld([
-      { id: 1, name: 'PUMPZ', amount: '500', value: '$1000', contractAddress: '0x2itiSZ9eeUdh2FJF3PKq7dZVpkEH8bBC5xzxMDBhpump' },
-      { id: 2, name: 'DOGE', amount: '1000', value: '$100', contractAddress: '0x1abcdef1234567890abcdef1234567890abcdef12' },
-    ]);
-    setCoinsCreated([
-      { id: 1, name: 'MyCoin', symbol: 'MYC', totalSupply: '1000000', contractAddress: '0x3abcdef1234567890abcdef1234567890abcdef12' },
-      { id: 2, name: 'AwesomeCoin', symbol: 'AWE', totalSupply: '500000', contractAddress: '0x4abcdef1234567890abcdef1234567890abcdef12' },
-    ]);
+    try {
+      // Fetch tokens created by the address
+      const response = await fetch('http://localhost:3001/pump/created', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: JSON.stringify({ creator: address }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to fetch tokens created');
+      }
+  
+      const data = await response.json();
+  
+      // Transform the data to match the expected format
+      const transformedCoinsCreated = data.tokens.map((token: any, index: number) => ({
+        id: index + 1,
+        name: token.name,
+        symbol: token.symbol,
+        totalSupply: 'N/A', // The total supply is not provided by our current API
+        contractAddress: token.tokenAddress,
+      }));
+  
+      setCoinsCreated(transformedCoinsCreated);
+  
+      // TODO: Implement actual API calls to fetch balance and coins held
+      setBalance('1000 ETH');
+      setCoinsHeld([
+        { id: 1, name: 'PUMPZ', amount: '500', value: '$1000', contractAddress: '0x2itiSZ9eeUdh2FJF3PKq7dZVpkEH8bBC5xzxMDBhpump' },
+        { id: 2, name: 'DOGE', amount: '1000', value: '$100', contractAddress: '0x1abcdef1234567890abcdef1234567890abcdef12' },
+      ]);
+  
+    } catch (error) {
+      console.error('Error fetching profile data:', error);
+      // Handle the error appropriately (e.g., show an error message to the user)
+    }
   };
 
   const connectWallet = async () => {
@@ -91,10 +119,27 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const buyPumpZToken = async () => {
+    try {
+      // Implement the logic to buy PumpZ tokens
+      // This might involve calling a smart contract function
+      // Update the balance after successful purchase
+      // For example:
+      // const result = await contractInstance.buyPumpZTokens(amount);
+      // if (result.success) {
+      //   const newBalance = await contractInstance.balanceOf(ethAddress);
+      //   setPumpZBalance(newBalance.toString());
+      // }
+      console.log('Buying PumpZ tokens...');
+    } catch (error) {
+      console.error('Error buying PumpZ tokens:', error);
+    }
+  };
 
   return (
     <div className={styles.pageContainer}>
-      <Header ethAddress={walletAddress as string} connectWallet={connectWallet} />
+      <Header ethAddress={walletAddress as string} connectWallet={connectWallet} pumpZBalance={pumpZBalance}
+        buyPumpZToken={buyPumpZToken}/>
     
       <main className={styles.main}>
         <section className={styles.profileHeader}>

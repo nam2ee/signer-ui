@@ -62,3 +62,27 @@
 .profileButton:hover {
   background-color: #e6c200;
 }
+
+.walletInfo {
+  display: flex;
+  align-items: center;
+}
+
+.pumpZBalance {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.buyPumpZButton {
+  margin-right: 10px;
+  padding: 5px 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.buyPumpZButton:hover {
+  background-color: #45a049;
+}
