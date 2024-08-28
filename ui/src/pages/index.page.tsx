@@ -347,8 +347,8 @@ export default function Home() {
     // Kakao SDK가 초기화되었다고 가정합니다.
     // 실제 사용 시에는 Kakao SDK 초기화 여부를 확인해야 합니다.
   
-    const CLIENT_ID = "YOUR_KAKAO_CLIENT_ID"; // 실제 클라이언트 ID로 교체해야 합니다.
-    const REDIRECT_URI = "YOUR_REDIRECT_URI"; // 실제 리다이렉트 URI로 교체해야 합니다.
+    const CLIENT_ID = "c3065cf2faf06f8a125effaa3a0ce722"; // 실제 클라이언트 ID로 교체해야 합니다.
+    const REDIRECT_URI = "http://localhost:3000"; // 실제 리다이렉트 URI로 교체해야 합니다.
   
     // state 파라미터 생성 (CSRF 공격 방지)
     const state = Math.random().toString(36).substr(2, 11);
