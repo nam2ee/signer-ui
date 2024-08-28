@@ -4,7 +4,7 @@ import styles from '../../styles/Market.module.css';
 import Header from '@/components/Header';
 import { ethers } from 'ethers';
 import { Pump_Z_Token_ABI, PUMP_Z_TOKEN_ADDRESS } from '@/constants/contracts';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 interface TokenData {
   name: string;
   symbol: string;
@@ -27,6 +27,33 @@ const MarketPage: React.FC = () => {
   const [sellAmount, setSellAmount] = useState('');
 
 
+  interface CandlestickSeriesProps {
+    x: number;
+    y: number | undefined;
+    width: number;
+    height: number | undefined;
+    low: number;
+    high: number;
+    open: number;
+    close: number;
+  }
+
+  interface CustomTooltipProps {
+    active?: boolean;
+    payload?: Array<{
+      payload: ChartDataPoint;
+    }>;
+  }
+
+  interface ChartDataPoint {
+    date: string;
+    open: number;
+    close: number;
+    high: number;
+    low: number;
+    volume: number;
+    ma?: number;  // Make ma optional since it's calculated later
+  }
   // Example data for top holders
   const topHolders = [
     { address: '0xabc...def', percentage: '15.5%' },
@@ -37,14 +64,67 @@ const MarketPage: React.FC = () => {
   ];
 
   const dummyChartData = [
-    { name: 'Jan', price: 4000 },
-    { name: 'Feb', price: 3000 },
-    { name: 'Mar', price: 5000 },
-    { name: 'Apr', price: 2780 },
-    { name: 'May', price: 1890 },
-    { name: 'Jun', price: 2390 },
-    { name: 'Jul', price: 3490 },
+    { date: '2023-01-01', open: 50, close: 80, high: 90, low: 40, volume: 5000000, ma : 0},
+    { date: '2023-01-02', open: 80, close: 70, high: 85, low: 65, volume: 4000000, ma : 0 },
+    { date: '2023-01-03', open: 70, close: 90, high: 95, low: 68, volume: 6000000, ma : 0 },
+    { date: '2023-01-04', open: 90, close: 85, high: 92, low: 80, volume: 3000000, ma : 0 },
+    { date: '2023-01-05', open: 85, close: 100, high: 105, low: 82, volume: 7000000, ma : 0 },
+    { date: '2023-01-06', open: 100, close: 95, high: 108, low: 92, volume: 5500000, ma : 0 },
+    { date: '2023-01-07', open: 95, close: 110, high: 115, low: 94, volume: 8000000, ma : 0 },
+    { date: '2023-01-01', open: 50, close: 80, high: 90, low: 40, volume: 5000000, ma : 0},
+    { date: '2023-01-02', open: 80, close: 70, high: 85, low: 65, volume: 4000000, ma : 0 },
+    { date: '2023-01-03', open: 70, close: 90, high: 95, low: 68, volume: 6000000, ma : 0 },
+    { date: '2023-01-04', open: 90, close: 85, high: 92, low: 80, volume: 3000000, ma : 0 },
+    { date: '2023-01-05', open: 85, close: 100, high: 105, low: 82, volume: 7000000, ma : 0 },
+    { date: '2023-01-06', open: 100, close: 95, high: 108, low: 92, volume: 5500000, ma : 0 },
+    { date: '2023-01-07', open: 95, close: 110, high: 115, low: 94, volume: 8000000, ma : 0 },
+    { date: '2023-01-01', open: 50, close: 80, high: 90, low: 40, volume: 5000000, ma : 0},
+    { date: '2023-01-02', open: 80, close: 70, high: 85, low: 65, volume: 4000000, ma : 0 },
+    { date: '2023-01-03', open: 70, close: 90, high: 95, low: 68, volume: 6000000, ma : 0 },
+    { date: '2023-01-04', open: 90, close: 85, high: 92, low: 80, volume: 3000000, ma : 0 },
+    { date: '2023-01-05', open: 85, close: 100, high: 105, low: 82, volume: 7000000, ma : 0 },
+    { date: '2023-01-06', open: 100, close: 95, high: 108, low: 92, volume: 5500000, ma : 0 },
+    { date: '2023-01-07', open: 95, close: 110, high: 115, low: 94, volume: 8000000, ma : 0 },
+    { date: '2023-01-06', open: 100, close: 95, high: 108, low: 92, volume: 5500000, ma : 0 },
+    { date: '2023-01-07', open: 95, close: 110, high: 115, low: 94, volume: 8000000, ma : 0 },
+    { date: '2023-01-01', open: 50, close: 80, high: 90, low: 40, volume: 5000000, ma : 0},
+    { date: '2023-01-02', open: 80, close: 70, high: 85, low: 65, volume: 4000000, ma : 0 },
+    { date: '2023-01-03', open: 70, close: 90, high: 95, low: 68, volume: 6000000, ma : 0 },
+    { date: '2023-01-04', open: 90, close: 85, high: 92, low: 80, volume: 3000000, ma : 0 },
+    { date: '2023-01-05', open: 85, close: 100, high: 105, low: 82, volume: 7000000, ma : 0 },
+    { date: '2023-01-06', open: 100, close: 95, high: 108, low: 92, volume: 5500000, ma : 0 },
+    { date: '2023-01-07', open: 95, close: 110, high: 115, low: 94, volume: 8000000, ma : 0 },
+    { date: '2023-01-01', open: 50, close: 80, high: 90, low: 40, volume: 5000000, ma : 0},
+    { date: '2023-01-02', open: 80, close: 70, high: 85, low: 65, volume: 4000000, ma : 0 },
+    { date: '2023-01-03', open: 70, close: 90, high: 95, low: 68, volume: 6000000, ma : 0 },
+    { date: '2023-01-04', open: 90, close: 85, high: 92, low: 80, volume: 3000000, ma : 0 },
+    { date: '2023-01-05', open: 85, close: 100, high: 105, low: 82, volume: 7000000, ma : 0 },
+    { date: '2023-01-06', open: 100, close: 95, high: 108, low: 92, volume: 5500000, ma : 0 },
+    { date: '2023-01-07', open: 95, close: 110, high: 115, low: 94, volume: 8000000, ma : 0 },
+    { date: '2023-01-06', open: 100, close: 95, high: 108, low: 92, volume: 5500000, ma : 0 },
+    { date: '2023-01-07', open: 95, close: 110, high: 115, low: 94, volume: 8000000, ma : 0 },
+    { date: '2023-01-01', open: 50, close: 80, high: 90, low: 40, volume: 5000000, ma : 0},
+    { date: '2023-01-02', open: 80, close: 70, high: 85, low: 65, volume: 4000000, ma : 0 },
+    { date: '2023-01-03', open: 70, close: 90, high: 95, low: 68, volume: 6000000, ma : 0 },
+    { date: '2023-01-04', open: 90, close: 85, high: 92, low: 80, volume: 3000000, ma : 0 },
+    { date: '2023-01-05', open: 85, close: 100, high: 105, low: 82, volume: 7000000, ma : 0 },
+    { date: '2023-01-06', open: 100, close: 95, high: 108, low: 92, volume: 5500000, ma : 0 },
+    { date: '2023-01-07', open: 95, close: 110, high: 115, low: 94, volume: 8000000, ma : 0 },
+    { date: '2023-01-01', open: 50, close: 80, high: 90, low: 40, volume: 5000000, ma : 0},
+    { date: '2023-01-02', open: 80, close: 70, high: 85, low: 65, volume: 4000000, ma : 0 },
+    { date: '2023-01-03', open: 70, close: 90, high: 95, low: 68, volume: 6000000, ma : 0 },
+    { date: '2023-01-04', open: 90, close: 85, high: 92, low: 80, volume: 3000000, ma : 0 },
+    { date: '2023-01-05', open: 85, close: 100, high: 105, low: 82, volume: 7000000, ma : 0 },
+    { date: '2023-01-06', open: 100, close: 95, high: 108, low: 92, volume: 5500000, ma : 0 },
+    { date: '2023-01-07', open: 95, close: 110, high: 115, low: 94, volume: 8000000, ma : 0 },
   ];
+  const movingAverageWindow = 3;
+  dummyChartData.forEach((item, index, array) => {
+    if (index >= movingAverageWindow - 1) {
+      const sum = array.slice(index - movingAverageWindow + 1, index + 1).reduce((acc, curr) => acc + curr.close, 0);
+      item.ma = sum / movingAverageWindow;
+    }
+  });
 
   useEffect(() => {
     if (contractAddress) {
@@ -227,7 +307,6 @@ const MarketPage: React.FC = () => {
       alert("Failed to sell tokens. Please check the console for more details.");
     }
   };
-  
 
   const openBuyModal = () => {
     setShowBuyModal(true);
@@ -236,6 +315,39 @@ const MarketPage: React.FC = () => {
   const openSellModal = () => {
     setShowSellModal(true);
   };
+
+  const CandlestickSeries: React.FC<CandlestickSeriesProps> = ({ x, y, width, height, low, high, open, close }) => {
+    if (y === undefined || height === undefined) return null;
+    
+    return (
+      <g stroke={close >= open ? "#00C853" : "#FF5252"} fill={close >= open ? "#00C853" : "#FF5252"}>
+        <line x1={x + width / 2} y1={y} x2={x + width / 2} y2={y + height} />
+        <rect x={x} y={close >= open ? y : y + height} width={width} height={Math.abs(open - close)} />
+        <line x1={x + width / 2} y1={Math.min(open, close)} x2={x + width / 2} y2={low} />
+        <line x1={x + width / 2} y1={Math.max(open, close)} x2={x + width / 2} y2={high} />
+      </g>
+    );
+  };
+  
+  const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className={styles.customTooltip}>
+          <p>Date: {data.date}</p>
+          <p>Open: {data.open}</p>
+          <p>Close: {data.close}</p>
+          <p>High: {data.high}</p>
+          <p>Low: {data.low}</p>
+          <p>Volume: {data.volume.toLocaleString()}</p>
+          {data.ma !== undefined && <p>MA: {data.ma.toFixed(2)}</p>}
+        </div>
+      );
+    }
+    return null;
+  };
+  
+
 
   const handleProfileClick = () => {
     if (ethAddress) {
@@ -249,22 +361,38 @@ const MarketPage: React.FC = () => {
         buyPumpZToken={buyPumpZToken}/>
       <main className={styles.main}>
         <div className={styles.contentContainer}>
-          <section className={styles.chartSection}>
+        <section className={styles.chartSection}>
             <h2 className={styles.sectionTitle}>Price Chart</h2>
             <p className={styles.contractAddress}>Contract Address: {contractAddress}</p>
             <div className={styles.chart}>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={dummyChartData}>
+              <ResponsiveContainer width="100%" height={400}>
+                <ComposedChart data={dummyChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
+                  <XAxis dataKey="date" />
+                  <YAxis yAxisId="price" domain={['dataMin', 'dataMax']} />
+                  <YAxis yAxisId="volume" orientation="right" />
+                  <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Line type="monotone" dataKey="price" stroke="#8884d8" activeDot={{ r: 8 }} />
-                </LineChart>
+                  <Bar dataKey="volume" yAxisId="volume" fill="#8884d8" opacity={0.3} />
+                  <Line type="monotone" dataKey="ma" stroke="#ff7300" dot={false} yAxisId="price" />
+                  {dummyChartData.map((entry, index) => (
+                    <CandlestickSeries
+                      key={`candle-${index}`}
+                      x={(index * 40) + 20}  // Adjust these values as needed for proper spacing
+                      y={entry.low}
+                      width={20}
+                      height={entry.high - entry.low}
+                      low={entry.low}
+                      high={entry.high}
+                      open={entry.open}
+                      close={entry.close}
+                    />
+                  ))}
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </section>
+
 
           <section className={styles.tradingSection}>
             <h2 className={styles.sectionTitle}>Trade {tokenData?.symbol || 'Token'}</h2>

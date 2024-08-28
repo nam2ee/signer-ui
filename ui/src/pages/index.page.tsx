@@ -37,6 +37,7 @@ export default function Home() {
   const [buyAmount, setBuyAmount] = useState('');
   const [showCreatePopup, setShowCreatePopup] = useState(false);
   const [pumpZBalance, setPumpZBalance] = useState('0');
+  const [showConditions, setShowConditions] = useState(false);
 
   const [setupStage, setSetupStage] = useState({
     workerLoaded: false,
@@ -46,7 +47,10 @@ export default function Home() {
   });
 
   // New state for popup
-
+  useEffect(() => {
+    
+  
+  }, []);
 
   const loadWorker = async () => {
     setDisplayText('Loading web worker...');
@@ -339,6 +343,41 @@ export default function Home() {
     await loadWorker();
   };
 
+  const handleVerifyKakaoTalk = () => {
+    // Kakao SDK가 초기화되었다고 가정합니다.
+    // 실제 사용 시에는 Kakao SDK 초기화 여부를 확인해야 합니다.
+  
+    const CLIENT_ID = "YOUR_KAKAO_CLIENT_ID"; // 실제 클라이언트 ID로 교체해야 합니다.
+    const REDIRECT_URI = "YOUR_REDIRECT_URI"; // 실제 리다이렉트 URI로 교체해야 합니다.
+  
+    // state 파라미터 생성 (CSRF 공격 방지)
+    const state = Math.random().toString(36).substr(2, 11);
+  
+    // 인증 URL 생성
+    const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&state=${state}`;
+  
+    // state를 로컬 스토리지에 저장 (나중에 검증을 위해)
+    localStorage.setItem('kakao_auth_state', state);
+  
+    // 콘솔에 로그 출력
+    console.log("Verifying with KakaoTalk");
+  
+    // 사용자를 카카오 인증 페이지로 리다이렉트
+    window.location.href = KAKAO_AUTH_URL;
+  };
+  
+  const handleVerifyX = () => {
+    // Implement X (Twitter) verification logic here
+    console.log("Verifying with X");
+    // You can add your verification logic or API calls here
+  };
+  
+  const handleVerifyTelegram = () => {
+    // Implement Telegram verification logic here
+    console.log("Verifying with Telegram");
+    // You can add your verification logic or API calls here
+  };
+
   const handleBuyToken = async () => {
 
     setDisplayText(`Buying ${buyAmount} tokens, please wait...`);
@@ -435,7 +474,16 @@ export default function Home() {
                 onChange={(e) => setInitialSupply(e.target.value)}
               />
               <button onClick={handleSubmitToken}>Create Token</button>
-              <button onClick={activateMina}>Activate Mina</button>
+              <button onClick={() => setShowConditions(!showConditions)}>
+                {showConditions ? 'Hide Conditions' : 'Assign Conditions'}
+              </button>
+              {showConditions && (
+                <div className={styles.conditionsButtons}>
+                  <button onClick={handleVerifyKakaoTalk}>Verify with KakaoTalk</button>
+                  <button onClick={handleVerifyX}>Verify with X</button>
+                  <button onClick={handleVerifyTelegram}>Verify with Telegram</button>
+                </div>
+              )}
               <button onClick={() => setShowCreatePopup(false)}>Cancel</button>
             </div>
           </div>
