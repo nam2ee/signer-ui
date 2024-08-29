@@ -33,7 +33,7 @@ const ProfilePage: React.FC = () => {
   const fetchProfileData = async (address: string) => {
     try {
       // Fetch tokens created by the address
-      const response = await fetch('http://localhost:3001/pump/created', {
+      const response = await fetch('http://15.164.62.35:3001/pump/created', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

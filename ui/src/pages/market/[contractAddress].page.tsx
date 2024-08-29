@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import { ethers } from 'ethers';
 import { Pump_Z_Token_ABI, PUMP_Z_TOKEN_ADDRESS } from '@/constants/contracts';
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { io, Socket } from 'socket.io-client';
 interface TokenData {
   name: string;
   symbol: string;
@@ -25,6 +26,7 @@ const MarketPage: React.FC = () => {
   const [pumpZBalance, setPumpZBalance] = useState('0');
   const [approveAmount, setApproveAmount] = useState('');
   const [sellAmount, setSellAmount] = useState('');
+  const [socket, setSocket] = useState<Socket | null>(null);
 
 
   interface CandlestickSeriesProps {
@@ -129,9 +131,38 @@ const MarketPage: React.FC = () => {
   useEffect(() => {
     if (contractAddress) {
       fetchTokenData(contractAddress as string);
+
+      // WebSocket 연결 설정
+      const newSocket = io('http://15.164.62.35:3001');
+
+      newSocket.on('connect', () => {
+        console.log('Connected to WebSocket server');
+        // 연결이 성공하면 tokenAddress 전송
+        newSocket.emit('subscribeToPrice', { tokenAddress: contractAddress });
+      });
+
+      newSocket.on('priceUpdate', (data) => {
+        console.log('Price update received:', data);
+        // 여기에서 필요한 상태 업데이트를 수행할 수 있습니다.
+        // 예: setTokenData(prevData => ({ ...prevData, price: data.price }));
+      });
+
+      newSocket.on('connect_error', (error) => {
+        console.error('WebSocket connection error:', error);
+      });
+
+      newSocket.on('disconnect', (reason) => {
+        console.log('Disconnected from WebSocket server:', reason);
+      });
+
+      setSocket(newSocket);
+
+      // 컴포넌트 언마운트 시 소켓 연결 해제
+      return () => {
+        newSocket.disconnect();
+      };
     }
   }, [contractAddress]);
-
   const fetchTokenData = async (address: string) => {
     // TODO: Implement actual API call to fetch token data
     setTokenData({
@@ -354,6 +385,8 @@ const MarketPage: React.FC = () => {
       router.push(`/${ethAddress}`);
     }
   };
+
+
 
   return (
     <div className={styles.pageContainer}>

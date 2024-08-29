@@ -209,7 +209,7 @@ export default function Home() {
       formData.append('tokenName', tokenName);
       formData.append('tokenSymbol', tokenSymbol);
   
-      const response = await fetch('http://localhost:3001/pump/deploy', {
+      const response = await fetch('http://15.164.62.35:3001/pump/deploy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
