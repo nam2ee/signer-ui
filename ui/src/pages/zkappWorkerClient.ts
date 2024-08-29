@@ -21,6 +21,10 @@ export default class ZkappWorkerClient {
     return this._call('compileContract', {});
   }
 
+  compileContract2() {
+    return this._call('compileContract2', {});
+  }
+
   fetchAccount({
     publicKey,
   }: {
@@ -34,6 +38,12 @@ export default class ZkappWorkerClient {
 
   initZkappInstance(publicKey: PublicKey) {
     return this._call('initZkappInstance', {
+      publicKey58: publicKey.toBase58(),
+    });
+  }
+
+  initZkappInstance2(publicKey: PublicKey) {
+    return this._call('initZkappInstance2', {
       publicKey58: publicKey.toBase58(),
     });
   }
@@ -58,6 +68,17 @@ export default class ZkappWorkerClient {
     const result = await this._call('getTransactionJSON', {});
     return result;
   }
+
+  Verificationproof(data: string, hash: string, proof: any) {
+    return this._call('VerificationProof', {proof: proof});
+  }
+
+  VerificationInstagramProof(data: string, hash: string, proof: any) {
+    return this._call('VerificationInstagramProof', {proof: proof});
+  }
+  
+
+  
 
   // ---------------------------------------------------------------------------------------
 

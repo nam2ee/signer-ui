@@ -1,4 +1,6 @@
-import { Mina, PublicKey, fetchAccount, Field, Signature } from 'o1js';
+import { Mina, PublicKey, fetchAccount, Field, Signature, JsonProof 
+  ,ZkProgram ,CircuitString ,UInt64 ,Bool, verify as Verify, SmartContract, state as State1, method,
+State as State2 } from 'o1js';
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
 
@@ -6,9 +8,70 @@ type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
 
 import type { VerifySignature } from '../../../contracts/src/Verify';
 
+export const ConnectedProof = ZkProgram({
+  name: "ConnectedProof", // 이름 바꿧다 조심해 
+  publicInput: CircuitString,
+  methods: {
+      verify: {
+          privateInputs: [Bool],
+          async method(target: CircuitString, status: Bool) {
+              status.assertEquals(Bool(true));
+          }
+      }
+  }
+}) // General한 Proof
+
+export class ConnectedProof_ extends ZkProgram.Proof(ConnectedProof) {}
+
+export const InstagramProof = ZkProgram({ // 인스타는 좀 다르니 조심 
+  name: "InstagramProof",
+  publicInput: CircuitString,
+  methods: {
+      verify_: {
+          privateInputs: [CircuitString, CircuitString],
+          async method(target: CircuitString, user_name: CircuitString, user_sub_name: CircuitString,) {
+              target.equals(user_sub_name).assertEquals(Bool(true));
+              }
+      }
+  }
+})
+
+export class InstagramProof_ extends ZkProgram.Proof(InstagramProof) {}
+
+
+
+
+export class MainProof extends SmartContract {
+
+  @State1(Bool) result = State2<Bool>(Bool.fromValue(false));
+
+  @method
+  async connected_verify( proof: ConnectedProof_ ) {
+      await proof.verify();
+
+      await this.result.set(Bool.fromValue(true));
+  }
+
+  @method
+  async instagram_verify( proof: InstagramProof_ ) {
+      await proof.verify();
+
+      await this.result.set(Bool.fromValue(true));
+  }
+
+}
+
+
+
+
+
 const state = {
   VerifySignature: null as null | typeof VerifySignature,
+  MainProof: MainProof,
+  ConnectedProof: ConnectedProof,
+  InstagramProof: InstagramProof,
   zkapp: null as null | VerifySignature,
+  zkapp2: null as null | MainProof,
   transaction: null as null | Transaction,
 };
 
@@ -29,6 +92,11 @@ const functions = {
   compileContract: async (args: {}) => {
     await state.VerifySignature!.compile();
   },
+  compileContract2: async (args: {}) => { 
+    await state.ConnectedProof.compile();
+    await state.InstagramProof.compile();
+    await state.MainProof!.compile();// 주의!! 
+  },
   fetchAccount: async (args: { publicKey58: string }) => {
     const publicKey = PublicKey.fromBase58(args.publicKey58);
     return await fetchAccount({ publicKey });
@@ -36,6 +104,10 @@ const functions = {
   initZkappInstance: async (args: { publicKey58: string }) => {
     const publicKey = PublicKey.fromBase58(args.publicKey58);
     state.zkapp = new state.VerifySignature!(publicKey);
+  },
+  initZkappInstance2: async (args: { publicKey58: string }) => {
+    const publicKey = PublicKey.fromBase58(args.publicKey58);
+    state.zkapp2 = new state.MainProof!(publicKey);
   },
   createVerifySignatureTransaction: async (args: { 
     publicKey: string, 
@@ -57,6 +129,27 @@ const functions = {
   getTransactionJSON: async (args: {}) => {
     return state.transaction!.toJSON();
   },
+  VerificationProof: async (args: {
+    proof: JsonProof
+  }) => {
+
+    let _proof = await ConnectedProof_.fromJSON(args.proof);
+    const tx = await Mina.transaction(async () => {
+      await state.zkapp2!.connected_verify(_proof);
+    });
+    state.transaction = tx;
+
+  },
+  VerificationInstagramProof: async (args: {
+    proof: JsonProof
+  })=>{
+    let _proof = await InstagramProof_.fromJSON(args.proof);
+    const tx = await Mina.transaction(async () => {
+      await state.zkapp2!.instagram_verify(_proof);
+    });
+    state.transaction = tx;
+  }
+  
 };
 
 // ---------------------------------------------------------------------------------------
