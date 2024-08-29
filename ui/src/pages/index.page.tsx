@@ -7,6 +7,9 @@ import './reactCOIServiceWorker';
 import ZkappWorkerClient from './zkappWorkerClient';
 import Header from '@/components/Header';
 import { PUMP_Z_TOKEN_ADDRESS, Pump_Z_Token_ABI } from '../constants/contracts';
+import {Check, Image as ImageIcon } from 'lucide-react';
+import { create } from '@web3-storage/w3up-client';
+
 
 let transactionFee = 0.1;
 const ZKAPP_ADDRESS = 'B62qjiQ3CsBGHZw9YQPvLdJ93Awzf9giKTELhYT4BU68kqGJvhWgauK';
@@ -190,6 +193,15 @@ export default function Home() {
   const [showCreatePopup, setShowCreatePopup] = useState(false);
   const [pumpZBalance, setPumpZBalance] = useState('0');
   const [showConditions, setShowConditions] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [isVerificationComplete, setIsVerificationComplete] = useState(false);
+  const [isVerificationSent, setIsVerificationSent] = useState(false);
+  const [client, setClient] = useState<any>(null);
+  const [newPost, setNewPost] = useState({ title: '', content: '', image: '' });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+
+
 
   const [setupStage, setSetupStage] = useState({
     workerLoaded: false,
@@ -199,6 +211,46 @@ export default function Home() {
   });
 
   // New state for popup
+
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && client) {
+      setSelectedFile(file);
+      setImageLoading(true);
+      try {
+        await client.login("nam2ee7957@naver.com");
+        console.log("성공입니다")
+        setIsVerificationSent(true);
+      } catch (error) {
+        console.error('Error during login: ', error);
+        setImageLoading(false);
+      }
+    }
+  };
+
+  const sendFile = async () => {
+    if (!selectedFile) {
+      console.error('No file selected');
+      setImageLoading(false);
+      return;
+    }
+    try {
+      await client.setCurrentSpace('did:key:z6Mko3AXsdDmhpg149Cuf2qbKDuHixCgqumtdJf7b95tUWmE');
+      let currfile = selectedFile;
+      setSelectedFile(null);
+      const cid = await client.uploadFile(selectedFile);
+      setNewPost({ ...newPost, image: `https://${cid}.ipfs.w3s.link` });
+      setImageLoading(false);
+      setIsVerificationComplete(true);
+      setIsVerificationSent(false);
+      console.log('File uploaded successfully:', cid);
+      
+    } catch (error) {
+      console.error('Error uploading file: ', error);
+      setImageLoading(false);
+    }
+  };
 
 
   useEffect(() => {
@@ -212,6 +264,10 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       if (!state.hasBeenSetup) {
+
+        const clientInstance = await create();
+        setClient(clientInstance);
+
         window.addEventListener("message", handleMessage);
 
         setDisplayText('Loading web worker...');
@@ -653,6 +709,31 @@ export default function Home() {
                   />
                   <button onClick={handleBuyPumpZ}>Buy Tokens</button>
                   <button onClick={() => setShowBuyPopup(false)}>Cancel</button>
+                  <div className="custom-file mb-2">
+                  <input 
+                    type="file" 
+                    className="custom-file-input" 
+                    id="customFile" 
+                    onChange={handleImageUpload}
+                    style={{display: 'none'}}
+                  />
+                  <label className="btn btn-outline-primary" htmlFor="customFile">
+                    <ImageIcon size={20} className="mr-2" />
+                    Choose Image
+                  </label>
+                  {newPost.image && <span className="ml-2">Image selected</span>}
+                </div>
+                <div></div>
+                {imageLoading ? <p>Uploading image </p> : null}
+      {isVerificationSent && !isVerificationComplete && selectedFile && (
+        <div>
+          <p>For sending file, click the button below:</p>
+          <button className="btn btn-secondary mb-2" onClick={sendFile}>
+            <Check size={20} className="mr-2" />
+            Send File
+          </button>
+        </div>
+      )}
                 </div>
               </div>
             )}
