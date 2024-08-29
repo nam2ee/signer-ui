@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { ethers , Log} from 'ethers';
 import GradientBG from '../components/GradientBG.js';
 import styles from '../styles/Home.module.css';
+import verificationStyles from '../styles/VerificationOptions.module.css';
 import './reactCOIServiceWorker';
 import ZkappWorkerClient from './zkappWorkerClient';
 import Header from '@/components/Header';
@@ -27,102 +28,40 @@ let currentState = {
 }
 
 
-const handleMessage = async (event: MessageEvent) => {
-  if (event.source !== window) return;
-  console.log("메세지가 도착했습니다", event.data.action);
 
-  if (event.data.action == "x_proof") {
-    console.log('x_proof');
-      if (currentState.zkappWorkerClient != null) {
-        console.log('x_proof');
-        await VerifyProof(event.data.proof); 
-      }
-    } 
-    else if (event.data.action == "isdev_proof") {
-      console.log('isdev_proof');
-      if (currentState.zkappWorkerClient != null) {
-        await VerifyProof(event.data.proof);
-        
-      }
-    }
-    else if (event.data.action == "kakao_proof") {
-      if (currentState.zkappWorkerClient != null) {
-        console.log('kakao_proof');
-        await VerifyProof(event.data.proof);
-        
-      }
-    }
-  else if (event.data.action == "instagram_name_proof"){
-    if (currentState.zkappWorkerClient != null) {
-      console.log('instagram_proof');
-      await VerifyInstagramProof(event.data.proof);
-      
-    }
-      
-    }
-};
-
-const VerifyProof = async ( proof:JsonProof) => {
-
-
+const VerifyProof = async (proof: JsonProof): Promise<boolean> => {
   if (!currentState.zkappWorkerClient) {
     console.error('zkappWorkerClient is not initialized');
-    return;
+    return false;
   }
-
-
 
   try {
-
-  await currentState.zkappWorkerClient!.Verificationproof('', '', proof);
-  await currentState.zkappWorkerClient!.proveTransaction();
-
-  console.log('prooved tx');
-
-  const transactionJSON = await currentState.zkappWorkerClient!.getTransactionJSON();
-
-  const { hash } = await (window as any).mina.sendTransaction({
-    transaction: transactionJSON,
-    feePayer: {
-      fee: transactionFee,
-      memo: '',
-    },
-  });
-
-  const transactionLink = `https://minascan.io/devnet/tx/${hash}`;
-  console.log(`View transaction at ${transactionLink}`);
-
-  // Set verification status to true if the transaction is successful
-  
-} catch (error) {
-  console.error('Error in transaction process:', error);
-  
-  if (error instanceof Error) {
-    switch(true) {
-      case error.message.includes('createVerifySignatureTransaction'):
-        break;
-      case error.message.includes('proveTransaction'):
-        break;
-      case error.message.includes('getTransactionJSON'):
-        break;
-      case error.message.includes('sendTransaction'):
-        break;
-      default:
-    }
-  } else {
+    await currentState.zkappWorkerClient!.Verificationproof('', '', proof);
+    await currentState.zkappWorkerClient!.proveTransaction();
+    console.log('prooved tx');
+    const transactionJSON = await currentState.zkappWorkerClient!.getTransactionJSON();
+    const { hash } = await (window as any).mina.sendTransaction({
+      transaction: transactionJSON,
+      feePayer: {
+        fee: transactionFee,
+        memo: '',
+      },
+    });
+    console.log(`View transaction at https://minascan.io/devnet/tx/${hash}`);
+    return true;
+  } catch (error) {
+    console.error('Error in transaction process:', error);
+    return false;
   }
-  }
-}
+};
 
-const VerifyInstagramProof = async ( proof:JsonProof) => {
+const VerifyInstagramProof = async ( proof:JsonProof): Promise<boolean> => {
 
 
   if (!currentState.zkappWorkerClient) {
     console.error('zkappWorkerClient is not initialized');
-    return;
+    return false;
   }
-
-
 
   try {
 
@@ -143,26 +82,12 @@ const VerifyInstagramProof = async ( proof:JsonProof) => {
 
   const transactionLink = `https://minascan.io/devnet/tx/${hash}`;
   console.log(`View transaction at ${transactionLink}`);
-
+  return true;
   // Set verification status to true if the transaction is successful
   
 } catch (error) {
   console.error('Error in transaction process:', error);
-  
-  if (error instanceof Error) {
-    switch(true) {
-      case error.message.includes('createVerifySignatureTransaction'):
-        break;
-      case error.message.includes('proveTransaction'):
-        break;
-      case error.message.includes('getTransactionJSON'):
-        break;
-      case error.message.includes('sendTransaction'):
-        break;
-      default:
-    }
-  } else {
-  }
+  return false;
   }
 }
 
@@ -199,7 +124,39 @@ export default function Home() {
   const [client, setClient] = useState<any>(null);
   const [newPost, setNewPost] = useState({ title: '', content: '', image: '' });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [verificationProof, setVerificationProof] = useState<JsonProof | null>(null);
+  const [showCreateTokenPopup, setShowCreateTokenPopup] = useState(false);
+  const [showCreateTokenButton, setShowCreateTokenButton] = useState(false);
 
+
+
+
+  const handleMessage = async (event: MessageEvent) => {
+    if (event.source !== window) return;
+    console.log("메세지가 도착했습니다", event.data.action);
+  
+    if (event.data.action == "x_proof" || event.data.action == "isdev_proof" || event.data.action == "kakao_proof") {
+      if (currentState.zkappWorkerClient != null) {
+        const result = await VerifyProof(event.data.proof);
+        if (result) {
+          setIsVerified(true);
+          setVerificationProof(event.data.proof);
+          // 검증 성공 시 CreateToken 버튼을 보이게 함
+          setShowCreateTokenButton(true);
+        }
+      }
+    } else if (event.data.action == "instagram_name_proof") {
+      if (currentState.zkappWorkerClient != null) {
+        const result = await VerifyInstagramProof(event.data.proof);
+        if (result) {
+          setIsVerified(true);
+          setVerificationProof(event.data.proof);
+          // 검증 성공 시 CreateToken 버튼을 보이게 함
+          setShowCreateTokenButton(true);
+        }
+      }
+    }
+  };
 
 
 
@@ -213,6 +170,7 @@ export default function Home() {
   // New state for popup
 
 
+
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && client) {
@@ -220,7 +178,7 @@ export default function Home() {
       setImageLoading(true);
       try {
         await client.login("nam2ee7957@naver.com");
-        console.log("성공입니다")
+        console.log("로그인 성공");
         setIsVerificationSent(true);
       } catch (error) {
         console.error('Error during login: ', error);
@@ -237,20 +195,22 @@ export default function Home() {
     }
     try {
       await client.setCurrentSpace('did:key:z6Mko3AXsdDmhpg149Cuf2qbKDuHixCgqumtdJf7b95tUWmE');
-      let currfile = selectedFile;
-      setSelectedFile(null);
       const cid = await client.uploadFile(selectedFile);
       setNewPost({ ...newPost, image: `https://${cid}.ipfs.w3s.link` });
       setImageLoading(false);
       setIsVerificationComplete(true);
       setIsVerificationSent(false);
       console.log('File uploaded successfully:', cid);
-      
     } catch (error) {
       console.error('Error uploading file: ', error);
       setImageLoading(false);
     }
   };
+
+
+  useEffect(() => {
+    setShowCreateTokenButton(isVerified);
+  }, [isVerified]);
 
 
   useEffect(() => {
@@ -501,15 +461,24 @@ export default function Home() {
   };
   
 
-  const createNewToken = async (tokenName: string, tokenSymbol: string) => {
+  const createNewToken = async (tokenName: string, tokenSymbol: string, initialSupply: string, imageUrl: string) => {
+    if (!isVerified) {
+      alert('Please verify your account before creating a token.');
+      return;
+    }
+
     try {
       setIsLoading(true);
       setDisplayText('Creating token...');
-  
+
       const formData = new URLSearchParams();
       formData.append('tokenName', tokenName);
       formData.append('tokenSymbol', tokenSymbol);
-  
+      formData.append('initialSupply', initialSupply);
+      formData.append('imageUrl', imageUrl);
+
+      console.log("이게 이미지",imageUrl);
+
       const response = await fetch('http://15.164.62.35:3001/pump/deploy', {
         method: 'POST',
         headers: {
@@ -517,19 +486,15 @@ export default function Home() {
         },
         body: formData.toString(),
       });
-  
+
       if (!response.ok) {
         throw new Error('Failed to create token');
       }
-  
-      setDisplayText('Token created. Waiting for confirmation...');
-  
+
       const data = await response.json();
-  
       console.log('Token created:', data);
       setTokenAddress(data.tokenAddress);
       setMintedAmount(data.mintedAmount);
-  
       setDisplayText(`Token created successfully! Address: ${data.tokenAddress}`);
       alert(`Token created successfully! Address: ${data.tokenAddress}`);
     } catch (error) {
@@ -541,17 +506,24 @@ export default function Home() {
     }
   };
 
-
+  const handleSubmitToken = async () => {
+    if (!newPost.image) {
+      alert('Please upload an image for your token.');
+      return;
+    }
+    console.log(`Creating token: ${tokenName} (${tokenSymbol})`);
+    await createNewToken(tokenName, tokenSymbol, initialSupply, newPost.image);
+    setShowCreatePopup(false);
+    setShowBuyPopup(true);
+  };
   // New functions for handling the popup
   const handleCreateMemeToken = () => {
+    if (!isVerified) {
+      alert("Please complete verification before creating a token.");
+      return;
+    }
+    setShowCreateTokenPopup(true);
     setShowCreatePopup(true);
-  };
-
-  const handleSubmitToken = async () => {
-    console.log(`Creating token: ${tokenName} (${tokenSymbol})`);
-    await createNewToken(tokenName, tokenSymbol);
-    await setShowCreatePopup(false)
-    setShowBuyPopup(true);
   };
 
   const activateMina = async () => {
@@ -644,57 +616,85 @@ export default function Home() {
             buyPumpZToken={buyPumpZToken}
           />
 
-          <main className={styles.main}>
-            <h1 className={styles.title}>Pump.Z</h1>
-            <p className={styles.description}>
-              The ultimate meme coin pump station!
-            </p>
+<main className={styles.main}>
+      <h1 className={styles.title}>Pump.Z</h1>
+      <p className={styles.description}>
+        The ultimate meme coin pump station!
+      </p>
 
-            <div className={styles.buttonContainer}>
-              <button className={styles.button} onClick={handleCreateMemeToken}>
-                Create Meme Token!
-              </button>
-            </div>
+      {showCreateTokenButton && (
+        <div className={styles.buttonContainer}>
+          <button className={styles.button} onClick={handleCreateMemeToken}>
+            Create Meme Token!
+          </button>
+        </div>
+      )}
 
-            {displayText && <div className={styles.status}>{displayText}</div>}
+      {!isVerified && (
+        <div className={verificationStyles.verificationOptions}>
+          <button className={verificationStyles.verificationButton} onClick={handleVerifyKakaoTalk}>
+            Verify with KakaoTalk
+          </button>
+          <button className={verificationStyles.verificationButton} onClick={handleVerifyX}>
+            Verify with X
+          </button>
+          <button className={verificationStyles.verificationButton} onClick={handleVerifyTelegram}>
+            Verify with Telegram
+          </button>
+        </div>
+      )}
 
-            {showCreatePopup && (
-              <div className={styles.popup}>
-                <div className={styles.popupContent}>
-                  <h2>Create Your Meme Token</h2>
-                  <input
-                    type="text"
-                    placeholder="Token Name"
-                    value={tokenName}
-                    onChange={(e) => setTokenName(e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Token Symbol"
-                    value={tokenSymbol}
-                    onChange={(e) => setTokenSymbol(e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Initial Supply"
-                    value={initialSupply}
-                    onChange={(e) => setInitialSupply(e.target.value)}
-                  />
-                  <button onClick={handleSubmitToken}>Create Token</button>
-                  <button onClick={() => setShowConditions(!showConditions)}>
-                    {showConditions ? 'Hide Conditions' : 'Assign Conditions'}
-                  </button>
-                  {showConditions && (
-                    <div className={styles.conditionsButtons}>
-                      <button onClick={handleVerifyKakaoTalk}>Verify with KakaoTalk</button>
-                      <button onClick={handleVerifyX}>Verify with X</button>
-                      <button onClick={handleVerifyTelegram}>Verify with Telegram</button>
-                    </div>
-                  )}
-                  <button onClick={() => setShowCreatePopup(false)}>Cancel</button>
-                </div>
-              </div>
-            )}
+{showCreatePopup && (
+  <div className={styles.popup}>
+    <div className={styles.popupContent}>
+      <h2>Create Your Meme Token</h2>
+      <input
+        type="text"
+        placeholder="Token Name"
+        value={tokenName}
+        onChange={(e) => setTokenName(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Token Symbol"
+        value={tokenSymbol}
+        onChange={(e) => setTokenSymbol(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Initial Supply"
+        value={initialSupply}
+        onChange={(e) => setInitialSupply(e.target.value)}
+      />
+      <div className="custom-file mb-2">
+        <input 
+          type="file" 
+          className="custom-file-input" 
+          id="customFile" 
+          onChange={handleImageUpload}
+          style={{display: 'none'}}
+        />
+        <label className="btn btn-outline-primary" htmlFor="customFile">
+          <ImageIcon size={20} className="mr-2" />
+          Choose Image
+        </label>
+        {newPost.image && <span className="ml-2">Image selected</span>}
+      </div>
+      {imageLoading ? <p>Uploading image...</p> : null}
+      {isVerificationSent && !isVerificationComplete && selectedFile && (
+        <div>
+          <p>For sending file, click the button below:</p>
+          <button className="btn btn-secondary mb-2" onClick={sendFile}>
+            <Check size={20} className="mr-2" />
+            Send File
+          </button>
+        </div>
+      )}
+      <button onClick={handleSubmitToken}>Create Token</button>
+      <button onClick={() => setShowCreatePopup(false)}>Cancel</button>
+    </div>
+  </div>
+)}
 
             {showBuyPopup && (
               <div className={styles.popup}>
